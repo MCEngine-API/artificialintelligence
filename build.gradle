@@ -1,0 +1,177 @@
+plugins {
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'java'
+}
+
+def loadEnvFile(String path) {
+    def env = [:]
+    def file = file(path)
+    if (file.exists()) {
+        file.eachLine { line ->
+            if (line && line.contains('=') && !line.startsWith('#')) {
+                def (key, value) = line.split('=', 2)
+                env[key.trim()] = value.trim()
+            }
+        }
+    }
+    return env
+}
+
+// 🔁 Load multiple env files in order
+def envFilesToLoad = ['.env', 'git.env']
+def envVars = [:]
+envFilesToLoad.each { envFile ->
+    envVars.putAll(loadEnvFile(envFile))
+}
+
+// Set project version using a property, defaulting to 'unspecified' if not found
+version = project.properties[project.name + '.version'] ?: 'undefined'
+group = 'io.github.mcengine'
+
+ext {
+    /* Name */
+    git_user_name = envVars['GIT_USER_NAME'] ?: System.getenv('GIT_USER_NAME') ?: 'null'
+    git_organization_name = envVars['GIT_ORGANIZATION_NAME'] ?: System.getenv('GIT_ORGANIZATION_NAME') ?: 'MCEngine'
+    git_repository_name = envVars['GIT_REPOSITORY_NAME'] ?: System.getenv('GIT_REPOSITORY_NAME') ?: 'artificialintelligence'
+
+    /* Token */
+    git_user_token = envVars['GIT_USER_TOKEN'] ?: System.getenv('GIT_USER_TOKEN') ?: 'null'
+    git_organization_token = envVars['GIT_ORGANIZATION_TOKEN'] ?: System.getenv('GIT_ORGANIZATION_TOKEN') ?: 'null'
+    git_repository_token = envVars['GIT_REPOSITORY_TOKEN'] ?: System.getenv('GIT_REPOSITORY_TOKEN') ?: 'null'
+
+    /* Project Information */
+    jarName = envVars['PROJECT_NAME'] ?: System.getenv('PROJECT_NAME') ?: 'MCEngineArtificialIntelligence'
+}
+
+allprojects {
+    group = 'io.github.mcengine'
+
+    apply plugin: 'java'
+    apply plugin: 'com.github.johnrengelman.shadow'
+
+    repositories {
+        mavenCentral()
+        mavenLocal()
+
+        maven {
+            url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots'
+            content {
+                includeGroup 'org.bukkit'
+                includeGroup 'org.spigotmc'
+            }
+        }
+
+        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+        maven { url 'https://oss.sonatype.org/content/repositories/central' }
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'com.github.johnrengelman.shadow'
+
+    def versionPropertyKey = project.path.replace(':', '-')
+    if (versionPropertyKey.startsWith('-')) {
+        versionPropertyKey = versionPropertyKey.substring(1)
+    }
+
+    if (!versionPropertyKey.contains('-')) {
+        versionPropertyKey = project.name
+    }
+
+    versionPropertyKey += '.version'
+    version = project.properties[versionPropertyKey] ?: 'undefined'
+
+    tasks.named('jar').configure {
+        enabled = false
+    }
+
+    tasks.named('shadowJar').configure {
+        archiveClassifier = null
+    }
+
+    afterEvaluate {
+        def serverPlatforms = ['spigotmc']
+        serverPlatforms.each { platform ->
+            if (project.path == ":server:${platform}:engine") {
+                dependencies {
+                    def platformDir = rootProject.file("server/${platform}")
+                    if (platformDir.exists()) {
+                        platformDir.eachDir { versionDir ->
+                            if (versionDir.name != 'engine') {
+                                def versionPath = ":server:${platform}:${versionDir.name}"
+                                implementation project(path: versionPath, configuration: 'shadow')
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (project.path == ":mcengine-${project.git_repository_name}-api") {
+        apply plugin: 'maven-publish'
+
+        publishing {
+            repositories {
+                maven {
+                    name = 'GitHubPackages'
+                    url = uri("https://maven.pkg.github.com/${project.git_organization_name}/${project.git_repository_name}")
+                    credentials {
+                        username = project.git_user_name
+                        password = project.git_user_token
+                                ?: project.git_repository_token
+                                ?: project.git_organization_token
+                    }
+                }
+            }
+            publications {
+                mavenJava(MavenPublication) {
+                    artifact(tasks.named('shadowJar').get())
+
+                    pom {
+                        name.set(project.jarName)
+                        description.set("The ${project.jarName} API is designed for use by addons.")
+                        url.set("https://github.com/${project.git_organization_name}/${project.git_repository_name}")
+
+                        scm {
+                            connection.set("scm:git:git://github.com/${project.git_organization_name}/${project.git_repository_name}.git")
+                            developerConnection.set("scm:git:ssh://github.com:${project.git_organization_name}/${project.git_repository_name}.git")
+                            url.set("https://github.com/${project.git_organization_name}/${project.git_repository_name}")
+                        }
+
+                        developers {
+                            developer {
+                                id.set('jetsadawijit')
+                                name.set('Jetsada Wijit')
+                                email.set('jetsadawijit@outlook.com')
+                                url.set('https://jetsadawijit.github.io')
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation project(path: ":mcengine-${project.git_repository_name}-api", configuration: 'shadow')
+
+    def platformModules = ['spigotmc']
+    platformModules.each { platform ->
+        implementation project(path: ":server:${platform}:engine", configuration: 'shadow')
+    }
+}
+
+shadowJar {
+    version = version
+    archiveClassifier = null
+    archiveBaseName = project.jarName
+}
+
+tasks.named('jar').configure {
+    enabled = false
+}
+
+build.dependsOn(shadowJar)
