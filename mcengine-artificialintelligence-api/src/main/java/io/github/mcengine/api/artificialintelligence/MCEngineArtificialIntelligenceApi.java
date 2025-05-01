@@ -53,34 +53,34 @@ public class MCEngineArtificialIntelligenceApi {
         return plugin;
     }
 
-    // ---------------- ADDON LOADER ----------------
+    // ADDON LOADER
 
     private void loadAddons() {
         loadExtensions("addons", "AddOn");
     }
 
-    // ---------------- DLC LOADER ----------------
+    // DLC LOADER
 
     private void loadDLCs() {
         loadExtensions("dlcs", "DLC");
     }
 
-    // ---------------- SHARED EXTENSION LOADER ----------------
+    // SHARED EXTENSION LOADER
 
     private void loadExtensions(String folderName, String type) {
         File folder = new File(plugin.getDataFolder(), folderName);
-
+    
         if (!folder.exists() && !folder.mkdirs()) {
             logger.warning("[" + type + "] Could not create " + folderName + " directory.");
             return;
         }
-
+    
         File[] files = folder.listFiles(file -> file.isFile() && file.getName().endsWith(".jar"));
         if (files == null || files.length == 0) {
             logger.info("[" + type + "] No " + folderName + " found.");
             return;
         }
-
+    
         for (File file : files) {
             try (
                 URLClassLoader classLoader = new URLClassLoader(
@@ -90,38 +90,36 @@ public class MCEngineArtificialIntelligenceApi {
                 JarFile jar = new JarFile(file)
             ) {
                 Enumeration<JarEntry> entries = jar.entries();
-
+    
                 while (entries.hasMoreElements()) {
                     JarEntry entry = entries.nextElement();
                     String name = entry.getName();
-
+    
                     if (!name.endsWith(".class") || name.contains("$")) {
                         continue;
                     }
-
+    
                     String className = name.replace("/", ".").replace(".class", "");
-
+    
                     try {
                         Class<?> clazz = classLoader.loadClass(className);
-
+    
                         if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
                             continue;
                         }
-
+    
                         Method onLoadMethod;
                         try {
-                            onLoadMethod = clazz.getMethod("onLoad", MCEngineArtificialIntelligenceApi.class);
+                            onLoadMethod = clazz.getMethod("onLoad", Plugin.class);
                         } catch (NoSuchMethodException e) {
                             continue;
                         }
-
+    
                         Object extensionInstance = clazz.getDeclaredConstructor().newInstance();
-                        onLoadMethod.invoke(extensionInstance, this);
-
+                        onLoadMethod.invoke(extensionInstance, plugin);
+    
                         logger.info("[" + type + "] Loaded: " + className);
-
-                        registerExtensionClasses(classLoader, clazz.getPackageName(), type);
-
+    
                     } catch (Throwable e) {
                         logger.warning("[" + type + "] Failed to load class: " + className);
                         e.printStackTrace();
@@ -134,97 +132,7 @@ public class MCEngineArtificialIntelligenceApi {
         }
     }
 
-    // ---------------- CLASS REGISTERING ----------------
-
-    private void registerExtensionClasses(ClassLoader classLoader, String basePackage, String type) {
-        try {
-            List<Class<?>> classes = findAllClasses(classLoader, basePackage);
-
-            for (Class<?> clazz : classes) {
-                if (Listener.class.isAssignableFrom(clazz)) {
-                    Listener listener;
-                    try {
-                        listener = (Listener) clazz.getDeclaredConstructor(MCEngineArtificialIntelligenceApi.class).newInstance(this);
-                    } catch (NoSuchMethodException e) {
-                        listener = (Listener) clazz.getDeclaredConstructor().newInstance();
-                    }
-                    registerListener(listener);
-                    logger.info("[" + type + "] Registered Listener: " + clazz.getSimpleName());
-                }
-
-                if (Command.class.isAssignableFrom(clazz)) {
-                    Command command;
-                    try {
-                        command = (Command) clazz.getDeclaredConstructor(MCEngineArtificialIntelligenceApi.class).newInstance(this);
-                    } catch (NoSuchMethodException e) {
-                        command = (Command) clazz.getDeclaredConstructor().newInstance();
-                    }
-                    registerCommand(command);
-                    logger.info("[" + type + "] Registered Command: " + command.getName());
-                }
-            }
-
-        } catch (Exception e) {
-            logger.warning("[" + type + "] Failed to register " + type + " classes.");
-            e.printStackTrace();
-        }
-    }
-
-    private List<Class<?>> findAllClasses(ClassLoader classLoader, String basePackage) {
-        List<Class<?>> classes = new ArrayList<>();
-        String basePath = basePackage.replace(".", "/");
-
-        try {
-            URL[] urls = ((URLClassLoader) classLoader).getURLs();
-            for (URL url : urls) {
-                try (JarFile jarFile = new JarFile(new File(url.toURI()))) {
-                    Enumeration<JarEntry> entries = jarFile.entries();
-                    while (entries.hasMoreElements()) {
-                        JarEntry entry = entries.nextElement();
-                        String name = entry.getName();
-
-                        if (name.endsWith(".class") && !name.contains("$") && name.startsWith(basePath)) {
-                            String className = name.replace("/", ".").replace(".class", "");
-                            try {
-                                Class<?> clazz = classLoader.loadClass(className);
-                                classes.add(clazz);
-                            } catch (Throwable ignored) {}
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            logger.warning("Failed to scan classes from JAR.");
-            e.printStackTrace();
-        }
-
-        return classes;
-    }
-
-    private void registerCommand(Command command) {
-        try {
-            Object commandMap = Bukkit.getServer().getClass()
-                .getMethod("getCommandMap")
-                .invoke(Bukkit.getServer());
-            commandMap.getClass()
-                .getMethod("register", String.class, Command.class)
-                .invoke(commandMap, command.getName(), command);
-        } catch (Exception e) {
-            logger.warning("Failed to register command: " + command.getName());
-            e.printStackTrace();
-        }
-    }
-
-    private void registerListener(Listener listener) {
-        try {
-            Bukkit.getPluginManager().registerEvents(listener, plugin);
-        } catch (Exception e) {
-            logger.warning("Failed to register listener: " + listener.getClass().getSimpleName());
-            e.printStackTrace();
-        }
-    }
-
-    // ---------------- TOKEN SYSTEM ----------------
+    // TOKEN SYSTEM
 
     private static Date parseExpirationDate(Object input) throws ParseException {
         if (input instanceof Date) {
@@ -294,6 +202,8 @@ public class MCEngineArtificialIntelligenceApi {
             return new Date(0L);
         }
     }
+
+    // Api
 
     /**
      * Sends a message to the AI and returns the AI's response.
