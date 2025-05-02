@@ -1,5 +1,4 @@
 [
-
     { "name": "onLoad()", "path": "addon/module/index.html" },
     { "name": "logger()", "path": "addon/logger/index.html" }
 ]
