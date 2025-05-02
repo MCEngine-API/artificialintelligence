@@ -24,6 +24,13 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
         secretKey = getConfig().getString("secretKey", "mcengine");
         token = getConfig().getString("token", "");
 
+        boolean enabled = getConfig().getBoolean("enable", false);
+        if (!enabled) {
+            getLogger().warning("Plugin is disabled in config.yml (enable: false). Disabling plugin...");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         if (token == null || token.isEmpty()) {
             getLogger().warning("No token found in config.yml!");
             getServer().getPluginManager().disablePlugin(this);
