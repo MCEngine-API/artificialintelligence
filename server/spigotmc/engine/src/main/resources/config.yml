@@ -1,2 +1,24 @@
+enable: true
+
 secretKey:
 token:
+
+ai:
+  type:
+
+  custom:
+    url:
+    token:
+    model:
+
+  deepseek:
+    token:
+    model:
+
+  openai:
+    token:
+    model:
+
+  openrouter:
+    token:
+    model:
