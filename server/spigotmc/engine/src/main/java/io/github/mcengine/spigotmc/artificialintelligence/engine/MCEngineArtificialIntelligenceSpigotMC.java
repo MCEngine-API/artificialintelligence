@@ -83,7 +83,7 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
 
         Bukkit.getScheduler().runTaskTimer(this, () -> {
             if (!validateToken()) {
-                getLogger().warning("❌ Token expired or invalid at midnight! Disabling plugin...");
+                getLogger().warning("Token expired or invalid at midnight! Disabling plugin...");
                 getServer().getPluginManager().disablePlugin(this);
             }
         }, delay, period);
