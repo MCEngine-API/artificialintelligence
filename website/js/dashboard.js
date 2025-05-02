@@ -50,7 +50,7 @@ async function loadDashboard() {
             box.className = "reflection-box";
 
             const link = document.createElement("a");
-            link.href = data.path;
+            link.href = "code/" + data.path;
             link.className = "box-title";
             link.textContent = data.name;
 
