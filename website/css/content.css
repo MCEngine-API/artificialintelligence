@@ -1,0 +1,90 @@
+/* Global reset */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+/* Container styling */
+.container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Heading */
+h1, h2 {
+    color: #222;
+}
+
+/* Form styling */
+form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+form input[type="text"] {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form button {
+    padding: 10px 20px;
+    border: none;
+    background: #007bff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background: #0056b3;
+}
+
+/* Reflection box styling (matches inline-block boxes) */
+.reflection-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.reflection-box {
+    flex: 1 1 calc(20% - 10px);
+    border: 1px solid #ddd;
+    background: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    min-width: 150px;
+    text-align: center;
+}
+
+/* Code block styling */
+.code-block {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    overflow-x: auto;
+    font-family: 'Courier New', Courier, monospace;
+}
+
+/* Header and footer styling (if not overridden by their HTML) */
+header, footer {
+    background: #333;
+    color: white;
+    text-align: center;
+    padding: 10px;
+}
+
+footer p {
+    margin: 0;
+}

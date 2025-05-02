@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <script src="js/dashboard.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch('template/header.html')
+                .then(response => response.text())
+                .then(data => document.getElementById('header').innerHTML = data);
+
+            fetch('template/footer.html')
+                .then(response => response.text())
+                .then(data => document.getElementById('footer').innerHTML = data);
+
+            if (typeof loadDashboard === 'function') {
+                loadDashboard();
+            }
+        });
+    </script>
+    <title>AI Response Documentation</title>
+</head>
+<body>
+    <div id="header"></div>
+    <br>
+
+    <div class="container mt-5">
+        <div id="dashboard" class="reflection-container"></div>
+    </div>
+
+    <br>
+    <div id="footer"></div>
+</body>
+</html>
