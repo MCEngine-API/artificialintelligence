@@ -11,7 +11,6 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.util.logging.Logger;
 
 /**
  * OpenRouter implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
@@ -23,6 +22,11 @@ public class MCEngineArtificialIntelligenceApiModelOpenRouter implements IMCEngi
     private final String token;
     private final String aiModel;
 
+    /**
+     * Constructs a new OpenRouter AI model handler.
+     *
+     * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
+     */
     public MCEngineArtificialIntelligenceApiModelOpenRouter(Plugin plugin) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.openrouter.token", null);
@@ -31,6 +35,12 @@ public class MCEngineArtificialIntelligenceApiModelOpenRouter implements IMCEngi
         plugin.getLogger().info("Model: " + aiModel);
     }
 
+    /**
+     * Sends a user message to the OpenRouter API and returns the AI's response.
+     *
+     * @param message The user input message to send.
+     * @return The AI-generated response string.
+     */
     @Override
     public String getResponse(String message) {
         try {

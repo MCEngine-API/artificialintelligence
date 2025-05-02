@@ -23,6 +23,10 @@ import java.util.logging.Logger;
 
 import io.github.mcengine.api.artificialintelligence.model.*;
 
+/**
+ * Main API class for MCEngineArtificialIntelligence.
+ * Handles AI model initialization, extension loading (AddOns/DLCs), and token validation.
+ */
 public class MCEngineArtificialIntelligenceApi {
 
     private final Plugin plugin;
@@ -31,6 +35,12 @@ public class MCEngineArtificialIntelligenceApi {
 
     private final IMCEngineArtificialIntelligenceApiModel ai;
 
+    /**
+     * Constructs a new AI API instance with the given plugin.
+     * Initializes the AI model and loads addons and DLCs.
+     *
+     * @param plugin The Bukkit plugin instance.
+     */
     public MCEngineArtificialIntelligenceApi(Plugin plugin) {
         // Set up
         this.plugin = plugin;
@@ -49,38 +59,50 @@ public class MCEngineArtificialIntelligenceApi {
         }
     }
 
+    /**
+     * Gets the associated plugin instance.
+     *
+     * @return The plugin instance.
+     */
     public Plugin getPlugin() {
         return plugin;
     }
 
-    // ADDON LOADER
-
+    /**
+     * Loads AI AddOns from the "addons" folder.
+     */
     private void loadAddons() {
         loadExtensions("addons", "AddOn");
     }
 
-    // DLC LOADER
-
+    /**
+     * Loads AI DLCs from the "dlcs" folder.
+     */
     private void loadDLCs() {
         loadExtensions("dlcs", "DLC");
     }
 
-    // SHARED EXTENSION LOADER
-
+    /**
+     * Loads extensions (AddOns or DLCs) from the specified folder.
+     * Scans JAR files for classes with an "onLoad(Plugin)" method and invokes them.
+     *
+     * @param folderName The folder name (relative to the plugin data folder).
+     * @param type       The extension type label (e.g., "AddOn", "DLC").
+     */
     private void loadExtensions(String folderName, String type) {
         File folder = new File(plugin.getDataFolder(), folderName);
-    
+
         if (!folder.exists() && !folder.mkdirs()) {
             logger.warning("[" + type + "] Could not create " + folderName + " directory.");
             return;
         }
-    
+
         File[] files = folder.listFiles(file -> file.isFile() && file.getName().endsWith(".jar"));
         if (files == null || files.length == 0) {
             logger.info("[" + type + "] No " + folderName + " found.");
             return;
         }
-    
+
         for (File file : files) {
             try (
                 URLClassLoader classLoader = new URLClassLoader(
@@ -90,36 +112,36 @@ public class MCEngineArtificialIntelligenceApi {
                 JarFile jar = new JarFile(file)
             ) {
                 Enumeration<JarEntry> entries = jar.entries();
-    
+
                 while (entries.hasMoreElements()) {
                     JarEntry entry = entries.nextElement();
                     String name = entry.getName();
-    
+
                     if (!name.endsWith(".class") || name.contains("$")) {
                         continue;
                     }
-    
+
                     String className = name.replace("/", ".").replace(".class", "");
-    
+
                     try {
                         Class<?> clazz = classLoader.loadClass(className);
-    
+
                         if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
                             continue;
                         }
-    
+
                         Method onLoadMethod;
                         try {
                             onLoadMethod = clazz.getMethod("onLoad", Plugin.class);
                         } catch (NoSuchMethodException e) {
                             continue;
                         }
-    
+
                         Object extensionInstance = clazz.getDeclaredConstructor().newInstance();
                         onLoadMethod.invoke(extensionInstance, plugin);
-    
+
                         logger.info("[" + type + "] Loaded: " + className);
-    
+
                     } catch (Throwable e) {
                         logger.warning("[" + type + "] Failed to load class: " + className);
                         e.printStackTrace();
@@ -132,8 +154,14 @@ public class MCEngineArtificialIntelligenceApi {
         }
     }
 
-    // TOKEN SYSTEM
-
+    /**
+     * Parses an expiration date from a supported input.
+     *
+     * @param input The date input (String or Date).
+     * @return The parsed Date object.
+     * @throws ParseException If the input string cannot be parsed.
+     * @throws IllegalArgumentException If the input type is unsupported.
+     */
     private static Date parseExpirationDate(Object input) throws ParseException {
         if (input instanceof Date) {
             return (Date) input;
@@ -144,6 +172,15 @@ public class MCEngineArtificialIntelligenceApi {
         }
     }
 
+    /**
+     * Validates a token against the plugin name, secret key, and current date.
+     *
+     * @param pluginName The plugin name.
+     * @param secretKey The secret key used for validation.
+     * @param token The token string to validate.
+     * @param nowDateInput The current date or date string.
+     * @return True if the token is valid and not expired; false otherwise.
+     */
     public static boolean validateToken(String pluginName, String secretKey, String token, Object nowDateInput) {
         try {
             Date nowDate = parseExpirationDate(nowDateInput);
@@ -179,6 +216,14 @@ public class MCEngineArtificialIntelligenceApi {
         }
     }
 
+    /**
+     * Extracts the expiration date from a token.
+     *
+     * @param pluginName The plugin name.
+     * @param secretKey The secret key used for validation.
+     * @param token The token string.
+     * @return The extracted expiration date, or a date representing epoch time (0) if invalid.
+     */
     public static Date extractExpirationDate(String pluginName, String secretKey, String token) {
         try {
             byte[] decodedBytes = Base64.getUrlDecoder().decode(token);
@@ -202,8 +247,6 @@ public class MCEngineArtificialIntelligenceApi {
             return new Date(0L);
         }
     }
-
-    // Api
 
     /**
      * Sends a message to the AI and returns the AI's response.

@@ -10,7 +10,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
-import java.util.logging.Logger;
 
 /**
  * OpenAI API implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
@@ -19,9 +18,18 @@ import java.util.logging.Logger;
 public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineArtificialIntelligenceApiModel {
 
     private final Plugin plugin;
+
+    /** The API token used for authentication with OpenAI. */
     private final String token;
+
+    /** The AI model ID configured in the plugin config. */
     private final String aiModel;
 
+    /**
+     * Constructs a new OpenAI API model handler using the plugin's configuration.
+     *
+     * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
+     */
     public MCEngineArtificialIntelligenceApiModelOpenAi(Plugin plugin) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.openai.token", null);
@@ -30,6 +38,12 @@ public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineAr
         plugin.getLogger().info("Model: " + aiModel);
     }
 
+    /**
+     * Sends a user message to the OpenAI API and retrieves the AI's response.
+     *
+     * @param message The user message or prompt to send.
+     * @return The AI's response as a string, or an error message if the request fails.
+     */
     @Override
     public String getResponse(String message) {
         try {

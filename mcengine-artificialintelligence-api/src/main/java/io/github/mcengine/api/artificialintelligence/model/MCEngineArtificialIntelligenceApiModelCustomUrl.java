@@ -11,11 +11,10 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
-import java.util.logging.Logger;
 
 /**
  * Custom URL AI implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
- * Communicates with a user-defined API endpoint from the config.
+ * Communicates with a user-defined API endpoint specified in the plugin configuration.
  */
 public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngineArtificialIntelligenceApiModel {
 
@@ -24,6 +23,11 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
     private final String aiModel;
     private final String endpoint;
 
+    /**
+     * Constructs a new Custom URL AI model handler.
+     *
+     * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
+     */
     public MCEngineArtificialIntelligenceApiModelCustomUrl(Plugin plugin) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.custom.token", null);
@@ -33,6 +37,12 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
         plugin.getLogger().info("Model: " + aiModel);
     }
 
+    /**
+     * Sends a user message to the custom API endpoint and returns the AI's response.
+     *
+     * @param message The user input message to send.
+     * @return The AI-generated response string.
+     */
     @Override
     public String getResponse(String message) {
         try {
