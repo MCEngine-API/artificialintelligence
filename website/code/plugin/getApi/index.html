@@ -4,15 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI API Usage</title>
-    <link rel="stylesheet" href="../../css/content.css">
-    <script src="../../js/switchContent.js"></script>
+    <link rel="stylesheet" href="../../../css/content.css">
+    <script src="../../../js/switchContent.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", function () {
-            fetch('../../template/header.html')
+            fetch('../../../template/header.html')
                 .then(response => response.text())
                 .then(data => document.getElementById('header').innerHTML = data);
 
-            fetch('../../template/footer.html')
+            fetch('../../../template/footer.html')
                 .then(response => response.text())
                 .then(data => document.getElementById('footer').innerHTML = data);
         });

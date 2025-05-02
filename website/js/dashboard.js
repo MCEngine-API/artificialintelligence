@@ -31,8 +31,10 @@ async function loadDashboard() {
     const validRegex = /^[^\s]+\(\)$/;
 
     const jsonFiles = [
-        "data/api/plugin.json",
-        "data/api/api.json"
+        "data/plugin.json",
+        "data/api.json",
+        "data/dlc.json",
+        "data/addon.json"
     ];
 
     const groupedData = await loadJsonFiles(jsonFiles);

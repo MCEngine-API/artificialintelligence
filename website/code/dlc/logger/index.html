@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLC Logger Example - SampleAIDLC</title>
+    <link rel="stylesheet" href="../../../css/content.css">
+    <script src="../../../js/switchContent.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch('../../../template/header.html')
+                .then(response => response.text())
+                .then(data => document.getElementById('header').innerHTML = data);
+
+            fetch('../../../template/footer.html')
+                .then(response => response.text())
+                .then(data => document.getElementById('footer').innerHTML = data);
+        });
+
+        function switchContent(tab) {
+            document.getElementById('codeContent').style.display = tab === 'code' ? 'block' : 'none';
+            document.getElementById('usageContent').style.display = tab === 'usage' ? 'block' : 'none';
+            document.getElementById('btnCode').classList.toggle('active', tab === 'code');
+            document.getElementById('btnUsage').classList.toggle('active', tab === 'usage');
+        }
+    </script>
+    <style>
+        .switch-buttons {
+            margin-bottom: 10px;
+        }
+        .switch-buttons button {
+            padding: 8px 16px;
+            margin-right: 5px;
+            border: none;
+            background: #007bff;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .switch-buttons button.active {
+            background: #0056b3;
+        }
+        .switch-buttons button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div id="header"></div>
+
+    <div class="container mt-5">
+        <h1 class="mb-4">AI DLC Logger Example</h1>
+
+        <section>
+            <div class="switch-buttons">
+                <button id="btnCode" class="active" onclick="switchContent('code')">Code</button>
+                <button id="btnUsage" onclick="switchContent('usage')">Usage</button>
+            </div>
+
+            <!-- CODE TAB: shows the Logger class -->
+            <div id="codeContent">
+                <pre class="code-block"><code>package io.github.mcengine.api.artificialintelligence.dlc;
+
+import org.bukkit.plugin.Plugin;
+
+import java.util.logging.Logger;
+
+/**
+ * Logger utility for AI DLCs, providing prefixed logging for a specific DLC name.
+ */
+public class MCEngineArtificialIntelligenceDLCLogger {
+
+    private final Logger logger;
+    private final String dlcName;
+
+    /**
+     * Constructs a new DLC logger for the specified plugin and DLC name.
+     *
+     * @param plugin  The plugin instance to retrieve the logger from.
+     * @param dlcName The name of the DLC to include in log messages.
+     */
+    public MCEngineArtificialIntelligenceDLCLogger(Plugin plugin, String dlcName) {
+        this.logger = plugin.getLogger();
+        this.dlcName = dlcName;
+    }
+
+    /**
+     * Logs an informational message with the DLC prefix.
+     *
+     * @param message The message to log.
+     */
+    public void info(String message) {
+        logger.info("[ DLC ] [ " + dlcName + " ] " + message);
+    }
+
+    /**
+     * Logs a warning message with the DLC prefix.
+     *
+     * @param message The message to log.
+     */
+    public void warning(String message) {
+        logger.warning("[ DLC ] [ " + dlcName + " ] " + message);
+    }
+
+    /**
+     * Logs a severe error message with the DLC prefix.
+     *
+     * @param message The message to log.
+     */
+    public void severe(String message) {
+        logger.severe("[ DLC ] [ " + dlcName + " ] " + message);
+    }
+}</code></pre>
+            </div>
+
+            <!-- USAGE TAB: shows the SampleAIDLC using the logger -->
+            <div id="usageContent" style="display: none;">
+                <pre class="code-block"><code>package io.github.mcengine.dlc.sample;
+
+import io.github.mcengine.api.artificialintelligence.dlc.IMCEngineArtificialIntelligenceDLC;
+import io.github.mcengine.api.artificialintelligence.dlc.MCEngineArtificialIntelligenceDLCLogger;
+import org.bukkit.plugin.Plugin;
+
+/**
+ * Example implementation of an AI DLC module.
+ */
+public class SampleAIDLC implements IMCEngineArtificialIntelligenceDLC {
+
+    /**
+     * This method is called when the DLC is loaded by the AI engine.
+     *
+     * @param plugin The main plugin instance.
+     */
+    @Override
+    public void onLoad(Plugin plugin) {
+        // Initialize the DLC logger with the DLC name "SampleAIDLC"
+        MCEngineArtificialIntelligenceDLCLogger logger = new MCEngineArtificialIntelligenceDLCLogger(plugin, "SampleAIDLC");
+
+        // Log messages with different levels
+        logger.info("DLC Loaded successfully!");
+        logger.warning("This is a warning message for SampleAIDLC.");
+        logger.severe("This is a severe error message for SampleAIDLC.");
+    }
+}</code></pre>
+            </div>
+        </section>
+
+        <section>
+            <h2>Explanation</h2>
+            <p>
+                This example shows how to use the <code>MCEngineArtificialIntelligenceDLCLogger</code> utility inside a DLC module implementation.
+                Switch between <b>Code</b> (the logger class) and <b>Usage</b> (the example implementation) using the buttons above.
+            </p>
+        </section>
+    </div>
+
+    <div id="footer"></div>
+</body>
+</html>

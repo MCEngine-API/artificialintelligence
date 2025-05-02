@@ -1,0 +1,4 @@
+[
+    { "name": "onLoad()", "path": "dlc/module/index.html" },
+    { "name": "logger()", "path": "dlc/logger/index.html" }
+]
