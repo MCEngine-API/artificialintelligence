@@ -45,7 +45,7 @@ public class MCEngineArtificialIntelligenceApi {
         // Set up
         this.plugin = plugin;
         this.logger = plugin.getLogger();
-        loadAddons();
+        loadAddOns();
         loadDLCs();
 
         // Load AI model
@@ -71,7 +71,7 @@ public class MCEngineArtificialIntelligenceApi {
     /**
      * Loads AI AddOns from the "addons" folder.
      */
-    private void loadAddons() {
+    private void loadAddOns() {
         loadExtensions("addons", "AddOn");
     }
 
