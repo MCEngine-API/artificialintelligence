@@ -7,13 +7,21 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.Date;
 
+/**
+ * Main SpigotMC plugin class for MCEngineArtificialIntelligence.
+ * Handles plugin lifecycle, token validation, and API initialization.
+ */
 public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
 
     private String secretKey;
     private String token;
     private Date expirationDate;
-    private MCEngineArtificialIntelligenceApi api; // <-- Add this
+    private MCEngineArtificialIntelligenceApi api;
 
+    /**
+     * Called when the plugin is enabled.
+     * Performs configuration loading, token validation, API initialization, and schedules token validation checks.
+     */
     @Override
     public void onEnable() {
         saveDefaultConfig(); // Save config.yml if it doesn't exist
@@ -52,14 +60,23 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
 
         getLogger().info("✅ Token validated successfully!");
 
-        api = new MCEngineArtificialIntelligenceApi(this); // <-- Initialize API
+        api = new MCEngineArtificialIntelligenceApi(this); // Initialize API
         scheduleMidnightCheck();
     }
 
+    /**
+     * Validates the current token using the API's validation method.
+     *
+     * @return true if the token is valid and not expired; false otherwise.
+     */
     private boolean validateToken() {
         return MCEngineArtificialIntelligenceApi.validateToken(getName(), secretKey, token, new Date());
     }
 
+    /**
+     * Schedules a daily token validation check at midnight.
+     * If the token is invalid at midnight, the plugin will disable itself.
+     */
     private void scheduleMidnightCheck() {
         long delay = calculateDelayUntilMidnight();
         long period = 24L * 60L * 60L * 20L; // 24 hours in ticks (20 ticks/sec)
@@ -72,6 +89,11 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
         }, delay, period);
     }
 
+    /**
+     * Calculates the number of server ticks until midnight.
+     *
+     * @return The delay in ticks until the next midnight.
+     */
     private long calculateDelayUntilMidnight() {
         long now = System.currentTimeMillis();
         long tomorrowMidnight = ((now / (24L * 60L * 60L * 1000L)) + 1L) * (24L * 60L * 60L * 1000L);
@@ -79,7 +101,9 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
     }
 
     /**
-     * Get the API instance of this plugin.
+     * Gets the API instance associated with this plugin.
+     *
+     * @return The {@link MCEngineArtificialIntelligenceApi} instance.
      */
     public MCEngineArtificialIntelligenceApi getApi() {
         return api;
