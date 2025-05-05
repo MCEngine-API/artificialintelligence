@@ -1,13 +1,19 @@
 package io.github.mcengine.api.artificialintelligence;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.stream.JsonReader;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
 import java.io.File;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.text.ParseException;
@@ -58,6 +64,46 @@ public class MCEngineArtificialIntelligenceApi {
             case "openrouter" -> this.ai = new MCEngineArtificialIntelligenceApiModelOpenRouter(plugin);
             default -> throw new IllegalArgumentException("Unsupported AI type: " + aiType);
         }
+    }
+
+    public void checkUpdate() {
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            try {
+                HttpURLConnection con = (HttpURLConnection) new URL(
+                        "https://api.github.com/repos/MCEngine/artificialintelligence/releases/latest").openConnection();
+                con.setRequestMethod("GET");
+                con.setRequestProperty("Accept", "application/vnd.github.v3+json");
+                con.setDoOutput(true);
+
+                JsonReader reader = new JsonReader(new InputStreamReader(con.getInputStream()));
+                JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
+                String latestVersion = json.get("tag_name").getAsString();
+                String version = plugin.getDescription().getVersion();
+
+                String[] lv = latestVersion.split("\\.");
+                String[] v = version.split("\\.");
+
+                boolean changed = lv.length != v.length;
+                changed = changed || !lv[0].equals(v[0]); // Major
+                if (!changed && lv.length > 1 && v.length > 1)
+                    changed = changed || !lv[1].equals(v[1]); // Minor
+                if (!changed && lv.length > 2 && v.length > 2)
+                    changed = changed || !lv[2].equals(v[2]); // Patch
+
+                if (changed) {
+                    List<String> updateMessages = new ArrayList<>();
+                    updateMessages.add("§9[MCEngineAI]§r §6A new update is available!");
+                    updateMessages.add("§9[MCEngineAI]§r Current version: §e" + version + " §r>> Latest: §a" + latestVersion);
+                    updateMessages.add("§9[MCEngineAI]§r Download: §bhttps://github.com/MCEngine/artificialintelligence/releases");
+
+                    updateMessages.forEach(msg -> Bukkit.getConsoleSender().sendMessage(msg));
+                } else {
+                    logger.info("No updates found. You are running the latest version.");
+                }
+            } catch (Exception ex) {
+                logger.warning("Could not check for updates: " + ex.getMessage());
+            }
+        });
     }
 
     /**

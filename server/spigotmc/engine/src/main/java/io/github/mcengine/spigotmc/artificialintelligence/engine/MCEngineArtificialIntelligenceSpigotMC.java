@@ -8,7 +8,7 @@ import java.util.Date;
 
 /**
  * Main SpigotMC plugin class for MCEngineArtificialIntelligence.
- * Handles plugin lifecycle, token validation, and API initialization.
+ * Handles plugin lifecycle, token validation, API initialization, and update checking.
  */
 public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
 
@@ -56,8 +56,15 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
 
         getLogger().info("✅ Token validated successfully!");
 
-        api = new MCEngineArtificialIntelligenceApi(this); // Initialize API
+        api = new MCEngineArtificialIntelligenceApi(this);
         scheduleMidnightCheck();
+
+        api.checkUpdate();
+    }
+
+    @Override
+    public void onDisable() {
+        getLogger().info("MCEngineArtificialIntelligenceSpigotMC has been disabled.");
     }
 
     /**
