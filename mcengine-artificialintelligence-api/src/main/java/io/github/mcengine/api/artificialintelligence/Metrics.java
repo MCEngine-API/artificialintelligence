@@ -12,7 +12,7 @@
  *
  * Violations will result in a ban of your plugin and account from bStats.
  */
-package io.github.mcengine.spigotmc.artificialintelligence.engine;
+package io.github.mcengine.api.artificialintelligence;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;

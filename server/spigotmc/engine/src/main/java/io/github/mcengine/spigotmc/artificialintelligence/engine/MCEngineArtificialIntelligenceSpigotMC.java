@@ -1,7 +1,6 @@
 package io.github.mcengine.spigotmc.artificialintelligence.engine;
 
 import io.github.mcengine.api.artificialintelligence.MCEngineArtificialIntelligenceApi;
-import io.github.mcengine.spigotmc.artificialintelligence.engine.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -25,9 +24,6 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig(); // Save config.yml if it doesn't exist
-
-        // Initialize bStats metrics
-        new Metrics(this, 25556);
 
         secretKey = getConfig().getString("secretKey", "mcengine");
         token = getConfig().getString("token", "");

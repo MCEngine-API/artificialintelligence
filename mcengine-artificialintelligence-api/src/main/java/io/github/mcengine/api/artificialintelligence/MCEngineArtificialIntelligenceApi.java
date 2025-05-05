@@ -21,6 +21,7 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
+import io.github.mcengine.api.artificialintelligence.Metrics;
 import io.github.mcengine.api.artificialintelligence.model.*;
 
 /**
@@ -42,7 +43,7 @@ public class MCEngineArtificialIntelligenceApi {
      * @param plugin The Bukkit plugin instance.
      */
     public MCEngineArtificialIntelligenceApi(Plugin plugin) {
-        // Set up
+        new Metrics(plugin, 25556);
         this.plugin = plugin;
         this.logger = plugin.getLogger();
         loadAddOns();
