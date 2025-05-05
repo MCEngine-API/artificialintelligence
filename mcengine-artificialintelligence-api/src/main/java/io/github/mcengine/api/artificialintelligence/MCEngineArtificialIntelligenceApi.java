@@ -66,44 +66,88 @@ public class MCEngineArtificialIntelligenceApi {
         }
     }
 
-    public void checkUpdate() {
+    public void checkUpdate(String gitPlatform, String org, String repository) {
+        switch (gitPlatform.toLowerCase()) {
+            case "github":
+                checkUpdateGitHub(org, repository);
+                break;
+            case "gitlab":
+                checkUpdateGitLab(org, repository);
+                break;
+            default:
+                logger.warning("Unknown platform: " + gitPlatform);
+        }
+    }
+
+    private void checkUpdateGitHub(String org, String repository) {
+        String apiUrl = String.format("https://api.github.com/repos/%s/%s/releases/latest", org, repository);
+        String downloadUrl = String.format("https://github.com/%s/%s/releases", org, repository);
+        fetchAndCompareUpdate(apiUrl, downloadUrl, "application/vnd.github.v3+json", false);
+    }
+
+    private void checkUpdateGitLab(String org, String repository) {
+        String apiUrl = String.format("https://gitlab.com/api/v4/projects/%s%%2F%s/releases", org, repository);
+        String downloadUrl = String.format("https://gitlab.com/%s/%s/-/releases", org, repository);
+        fetchAndCompareUpdate(apiUrl, downloadUrl, "application/json", true);
+    }
+
+    private void fetchAndCompareUpdate(String apiUrl, String downloadUrl, String acceptHeader, boolean jsonArray) {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             try {
-                HttpURLConnection con = (HttpURLConnection) new URL(
-                        "https://api.github.com/repos/MCEngine/artificialintelligence/releases/latest").openConnection();
+                HttpURLConnection con = (HttpURLConnection) new URL(apiUrl).openConnection();
                 con.setRequestMethod("GET");
-                con.setRequestProperty("Accept", "application/vnd.github.v3+json");
+                con.setRequestProperty("Accept", acceptHeader);
                 con.setDoOutput(true);
 
                 JsonReader reader = new JsonReader(new InputStreamReader(con.getInputStream()));
-                JsonObject json = JsonParser.parseReader(reader).getAsJsonObject();
-                String latestVersion = json.get("tag_name").getAsString();
+                String latestVersion;
+
+                if (jsonArray) {
+                    // GitLab returns array
+                    var jsonArrayObj = JsonParser.parseReader(reader).getAsJsonArray();
+                    latestVersion = jsonArrayObj.size() > 0 ? jsonArrayObj.get(0).getAsJsonObject().get("tag_name").getAsString() : null;
+                } else {
+                    // GitHub returns object
+                    var jsonObject = JsonParser.parseReader(reader).getAsJsonObject();
+                    latestVersion = jsonObject.get("tag_name").getAsString();
+                }
+
+                if (latestVersion == null) {
+                    logger.warning("Could not find release tag from API: " + apiUrl);
+                    return;
+                }
+
                 String version = plugin.getDescription().getVersion();
-
-                String[] lv = latestVersion.split("\\.");
-                String[] v = version.split("\\.");
-
-                boolean changed = lv.length != v.length;
-                changed = changed || !lv[0].equals(v[0]); // Major
-                if (!changed && lv.length > 1 && v.length > 1)
-                    changed = changed || !lv[1].equals(v[1]); // Minor
-                if (!changed && lv.length > 2 && v.length > 2)
-                    changed = changed || !lv[2].equals(v[2]); // Patch
+                boolean changed = isUpdateAvailable(version, latestVersion);
 
                 if (changed) {
                     List<String> updateMessages = new ArrayList<>();
-                    updateMessages.add("§9[MCEngineAI]§r §6A new update is available!");
-                    updateMessages.add("§9[MCEngineAI]§r Current version: §e" + version + " §r>> Latest: §a" + latestVersion);
-                    updateMessages.add("§9[MCEngineAI]§r Download: §bhttps://github.com/MCEngine/artificialintelligence/releases");
+                    updateMessages.add("§9[MCEngineArtificialIntelligence]§r §6A new update is available!");
+                    updateMessages.add("§9[MCEngineArtificialIntelligence]§r Current version: §e" + version + " §r>> Latest: §a" + latestVersion);
+                    updateMessages.add("§9[MCEngineArtificialIntelligence]§r Download: §b" + downloadUrl);
 
                     updateMessages.forEach(msg -> Bukkit.getConsoleSender().sendMessage(msg));
                 } else {
                     logger.info("No updates found. You are running the latest version.");
                 }
             } catch (Exception ex) {
-                logger.warning("Could not check for updates: " + ex.getMessage());
+                logger.warning("Could not check for updates from " + apiUrl + ": " + ex.getMessage());
             }
         });
+    }
+
+    private boolean isUpdateAvailable(String currentVersion, String latestVersion) {
+        String[] lv = latestVersion.split("\\.");
+        String[] cv = currentVersion.split("\\.");
+
+        boolean changed = lv.length != cv.length;
+        changed = changed || !lv[0].equals(cv[0]); // Major
+        if (!changed && lv.length > 1 && cv.length > 1)
+            changed = changed || !lv[1].equals(cv[1]); // Minor
+        if (!changed && lv.length > 2 && cv.length > 2)
+            changed = changed || !lv[2].equals(cv[2]); // Patch
+
+        return changed;
     }
 
     /**
