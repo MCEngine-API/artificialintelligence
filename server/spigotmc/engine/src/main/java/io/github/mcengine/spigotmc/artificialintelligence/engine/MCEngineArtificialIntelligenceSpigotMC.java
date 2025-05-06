@@ -25,7 +25,7 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig(); // Save config.yml if it doesn't exist
 
-        secretKey = getConfig().getString("secretKey", "mcengine");
+        /* secretKey = getConfig().getString("secretKey", "mcengine");
         token = getConfig().getString("token", "");
 
         boolean enabled = getConfig().getBoolean("enable", false);
@@ -54,7 +54,7 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
             return;
         }
 
-        getLogger().info("Token validated successfully!");
+        getLogger().info("Token validated successfully!"); */
 
         api = new MCEngineArtificialIntelligenceApi(this);
         scheduleMidnightCheck();
