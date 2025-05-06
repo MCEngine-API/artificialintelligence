@@ -33,7 +33,7 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
     public MCEngineArtificialIntelligenceApiModelCustomUrl(Plugin plugin) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.custom.token", null);
-        this.aiModel = plugin.getConfig().getString("ai.custom.model", "gpt-3.5-turbo");
+        this.aiModel = plugin.getConfig().getString("ai.custom.model", "");
         this.endpoint = plugin.getConfig().getString("ai.custom.url", "http://localhost:11434/v1/chat/completions");
         plugin.getLogger().info("Using Custom URL at " + endpoint);
         plugin.getLogger().info("Model: " + aiModel);
