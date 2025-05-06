@@ -4,8 +4,6 @@ secretKey:
 token:
 
 ai:
-  type:
-
   custom:
     url:
     token:
