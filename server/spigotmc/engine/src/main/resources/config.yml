@@ -3,6 +3,9 @@ enable: false
 secretKey:
 token:
 
+gtihub:
+  token:
+
 ai:
   custom:
     # Default URL used when creating models with the custom URL method
