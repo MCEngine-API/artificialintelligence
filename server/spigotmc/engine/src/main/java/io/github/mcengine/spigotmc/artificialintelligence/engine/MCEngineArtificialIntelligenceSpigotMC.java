@@ -24,15 +24,15 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig(); // Save config.yml if it doesn't exist
 
-        /* secretKey = getConfig().getString("secretKey", "mcengine");
-        token = getConfig().getString("token", "");
-
         boolean enabled = getConfig().getBoolean("enable", false);
         if (!enabled) {
             getLogger().warning("Plugin is disabled in config.yml (enable: false). Disabling plugin...");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+
+        /* secretKey = getConfig().getString("secretKey", "mcengine");
+        token = getConfig().getString("token", "");
 
         if (token == null || token.isEmpty()) {
             getLogger().warning("No token found in config.yml!");
