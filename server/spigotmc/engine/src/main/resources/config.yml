@@ -5,18 +5,23 @@ token:
 
 ai:
   custom:
+    # Default URL used when creating models with the custom URL method
     url:
     token:
+    # Default model loaded when the plugin starts
     model:
 
   deepseek:
     token:
+    # Default model loaded when the plugin starts
     model:
 
   openai:
     token:
+    # Default model loaded when the plugin starts
     model:
 
   openrouter:
     token:
+    # Default model loaded when the plugin starts
     model:
