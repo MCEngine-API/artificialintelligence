@@ -8,11 +8,24 @@ gtihub:
 
 ai:
   custom:
-    # Default URL used when creating models with the custom URL method
-    url:
-    token:
-    # Default model loaded when the plugin starts
-    model:
+    # You can define multiple servers under "custom"
+    # Each server can have its own URL, token, and default model
+
+    server1:
+      # API endpoint URL for server1
+      url: http://localhost:11434/v1/chat/completions
+      # Authorization token for server1
+      token:
+      # Default model name for server1
+      model: model1
+
+    server2:
+      # API endpoint URL for server2
+      url: http://localhost:11435/v1/chat/completions
+      # Authorization token for server2
+      token:
+      # Default model name for server2
+      model: model2
 
   deepseek:
     token:

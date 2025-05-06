@@ -22,20 +22,26 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
 
     private Plugin plugin;
     private String token;
-    private String aiModel;
     private String endpoint;
+    private String aiModel;
 
     /**
-     * Constructs a new Custom URL AI model handler using a provided model.
+     * Constructs a new Custom URL AI model handler for a specific server and model.
+     * <p>
+     * This constructor retrieves the API endpoint URL, token, and default model
+     * from the plugin configuration path {@code ai.custom.{server}}.
+     * It allows multiple servers, each with their own endpoint and token, to be used concurrently.
      *
-     * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
-     * @param model  The AI model name to use.
+     * @param plugin The Bukkit plugin instance for configuration and logging.
+     * @param server The server identifier (corresponding to the config section {@code ai.custom.{server}}).
+     * @param model  The AI model name; if null, uses the model from config {@code ai.custom.{server}.model}.
      */
-    public MCEngineArtificialIntelligenceApiModelCustomUrl(Plugin plugin, String model) {
+    public MCEngineArtificialIntelligenceApiModelCustomUrl(Plugin plugin, String server, String model) {
         this.plugin = plugin;
-        this.token = plugin.getConfig().getString("ai.custom.token", null);
-        this.aiModel = model;
-        this.endpoint = plugin.getConfig().getString("ai.custom.url", "http://localhost:11434/v1/chat/completions");
+        String configBase = "ai.custom." + server + ".";
+        this.token = plugin.getConfig().getString(configBase + "token", null);
+        this.endpoint = plugin.getConfig().getString(configBase + "url", "http://localhost:11434/v1/chat/completions");
+        this.aiModel = plugin.getConfig().getString(configBase + "model", model);
     }
 
     /**

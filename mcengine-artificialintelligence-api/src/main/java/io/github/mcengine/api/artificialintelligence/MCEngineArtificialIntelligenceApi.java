@@ -45,12 +45,25 @@ public class MCEngineArtificialIntelligenceApi {
         loadDLCs();
 
         // Load Default AI models
-        String[] platforms = { "custom", "deepseek", "openai", "openrouter" };
+        String[] platforms = { "deepseek", "openai", "openrouter" };
+
+        // Load models for deepseek, openai, openrouter (single model config)
         for (String platform : platforms) {
             String configKey = "ai." + platform + ".model";
             String model = plugin.getConfig().getString(configKey);
             if (model != null && !model.equalsIgnoreCase("null")) {
                 registerModel(platform, model);
+            }
+        }
+
+        // Load models for customurl (multiple servers)
+        if (plugin.getConfig().isConfigurationSection("ai.custom")) {
+            for (String server : plugin.getConfig().getConfigurationSection("ai.custom").getKeys(false)) {
+                String configKey = "ai.custom." + server + ".model";
+                String model = plugin.getConfig().getString(configKey);
+                if (model != null && !model.equalsIgnoreCase("null")) {
+                    registerModel("customurl", server + ":" + model);
+                }
             }
         }
     }

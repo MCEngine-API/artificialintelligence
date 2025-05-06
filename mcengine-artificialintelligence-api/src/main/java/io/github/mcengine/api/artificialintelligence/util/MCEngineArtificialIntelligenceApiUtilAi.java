@@ -46,7 +46,10 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
                     aiModel = new MCEngineArtificialIntelligenceApiModelOpenRouter(plugin, model);
                     break;
                 case "customurl":
-                    aiModel = new MCEngineArtificialIntelligenceApiModelCustomUrl(plugin, model);
+                    String[] parts = model.split(":", 2);
+                    String server = parts[0];
+                    String actualModel = (parts.length > 1) ? parts[1] : plugin.getConfig().getString("ai.custom." + server + ".model", null);
+                    aiModel = new MCEngineArtificialIntelligenceApiModelCustomUrl(plugin, server, actualModel);
                     break;
                 default:
                     throw new IllegalArgumentException("Unsupported AI platform: " + platform);
