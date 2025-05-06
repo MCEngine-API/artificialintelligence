@@ -47,8 +47,11 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
                     break;
                 case "customurl":
                     String[] parts = model.split(":", 2);
+                    if (parts.length != 2) {
+                        throw new IllegalArgumentException("CustomURL model must be in format 'server:modelName'. Got: " + model);
+                    }
                     String server = parts[0];
-                    String actualModel = (parts.length > 1) ? parts[1] : plugin.getConfig().getString("ai.custom." + server + ".model", null);
+                    String actualModel = parts[1];
                     aiModel = new MCEngineArtificialIntelligenceApiModelCustomUrl(plugin, server, actualModel);
                     break;
                 default:

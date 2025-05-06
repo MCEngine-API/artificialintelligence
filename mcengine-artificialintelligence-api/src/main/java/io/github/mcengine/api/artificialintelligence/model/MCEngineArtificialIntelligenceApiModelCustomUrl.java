@@ -41,7 +41,7 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
         String configBase = "ai.custom." + server + ".";
         this.token = plugin.getConfig().getString(configBase + "token", null);
         this.endpoint = plugin.getConfig().getString(configBase + "url", "http://localhost:11434/v1/chat/completions");
-        this.aiModel = plugin.getConfig().getString(configBase + "model", model);
+        this.aiModel = model;
     }
 
     /**
