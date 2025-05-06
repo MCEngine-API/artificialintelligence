@@ -29,29 +29,6 @@ public class MCEngineArtificialIntelligenceApi {
     private final Logger logger;
 
     /**
-     * The AI model instance for DeepSeek.
-     */
-    private final IMCEngineArtificialIntelligenceApiModel aiDeepSeek;
-
-    /**
-     * The AI model instance for OpenAI.
-     */
-    private final IMCEngineArtificialIntelligenceApiModel aiOpenAi;
-
-    /**
-     * The AI model instance for OpenRouter.
-     */
-    private final IMCEngineArtificialIntelligenceApiModel aiOpenRouter;
-
-    /**
-     * The AI model instance for a custom URL endpoint.
-     */
-    private final IMCEngineArtificialIntelligenceApiModel aiCustomUrl;
-
-    // 🔥 GLOBAL cache shared across ALL plugins (platform → (model → instance))
-    private static final Map<String, Map<String, IMCEngineArtificialIntelligenceApiModel>> modelCache = new HashMap<>();
-
-    /**
      * Constructs a new AI API instance with the given plugin.
      * Initializes the AI model and loads addons and DLCs.
      *
@@ -64,11 +41,15 @@ public class MCEngineArtificialIntelligenceApi {
         loadAddOns();
         loadDLCs();
 
-        // Load AI model
-        this.aiDeepSeek = new MCEngineArtificialIntelligenceApiModelDeepSeek(plugin);
-        this.aiOpenAi = new MCEngineArtificialIntelligenceApiModelOpenAi(plugin);
-        this.aiOpenRouter = new MCEngineArtificialIntelligenceApiModelOpenRouter(plugin);
-        this.aiCustomUrl = new MCEngineArtificialIntelligenceApiModelCustomUrl(plugin);
+        // Load Default AI models
+        String[] platforms = { "custom", "deepseek", "openai", "openrouter" };
+        for (String platform : platforms) {
+            String configKey = "ai." + platform + ".model";
+            String model = plugin.getConfig().getString(configKey);
+            if (model != null && !model.equalsIgnoreCase("null")) {
+                registerModel(platform, model);
+            }
+        }
     }
 
     public void checkUpdate(String gitPlatform, String org, String repository, String token) {
@@ -167,45 +148,5 @@ public class MCEngineArtificialIntelligenceApi {
      */
     public String getResponse(String platform, String model, String message) {
         return getAi(platform, model).getResponse(message);
-    }
-
-    /**
-     * Sends a message to the DeepSeek AI model and returns its response.
-     *
-     * @param message The message or prompt to send to DeepSeek.
-     * @return The response from DeepSeek.
-     */
-    public String getResponseFromDeepSeek(String message) {
-        return aiDeepSeek.getResponse(message);
-    }
-
-    /**
-     * Sends a message to the OpenAI AI model and returns its response.
-     *
-     * @param message The message or prompt to send to OpenAI.
-     * @return The response from OpenAI.
-     */
-    public String getResponseFromOpenAi(String message) {
-        return aiOpenAi.getResponse(message);
-    }
-
-    /**
-     * Sends a message to the OpenRouter AI model and returns its response.
-     *
-     * @param message The message or prompt to send to OpenRouter.
-     * @return The response from OpenRouter.
-     */
-    public String getResponseFromOpenRouter(String message) {
-        return aiOpenRouter.getResponse(message);
-    }
-
-    /**
-     * Sends a message to the Custom URL AI model and returns its response.
-     *
-     * @param message The message or prompt to send to the custom URL AI.
-     * @return The response from the custom URL AI.
-     */
-    public String getResponseFromCustomUrl(String message) {
-        return aiCustomUrl.getResponse(message);
     }
 }
