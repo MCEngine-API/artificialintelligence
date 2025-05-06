@@ -53,7 +53,11 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
             }
 
             platformMap.put(model, aiModel);
-            logger.info("Registered model → platform=" + platform + ", model=" + model);
+            logger.info("*".repeat(15));
+            logger.info("Registered AI");
+            logger.info("Platform: " + platform);
+            logger.info("Model: " + model);
+            logger.info("*".repeat(15));
         }
     }
 
