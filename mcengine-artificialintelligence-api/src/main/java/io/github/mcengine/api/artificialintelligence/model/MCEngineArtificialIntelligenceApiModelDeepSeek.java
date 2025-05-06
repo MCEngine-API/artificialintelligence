@@ -20,23 +20,22 @@ import java.nio.charset.StandardCharsets;
  */
 public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngineArtificialIntelligenceApiModel {
 
-    private final Plugin plugin;
+    private Plugin plugin;
+    private String token;
+    private String aiModel;
 
-    /** The API token used for authentication with DeepSeek. */
-    private final String token;
-
-    /** The AI model ID configured in the plugin config. */
-    private final String aiModel;
-
-    /**
-     * Constructs a DeepSeek API handler using the plugin's configuration.
-     *
-     * @param plugin The plugin that provides configuration and context.
-     */
     public MCEngineArtificialIntelligenceApiModelDeepSeek(Plugin plugin) {
+        initialize(plugin, plugin.getConfig().getString("ai.deepseek.model", "deepseek-chat"));
+    }
+
+    public MCEngineArtificialIntelligenceApiModelDeepSeek(Plugin plugin, String model) {
+        initialize(plugin, model);
+    }
+
+    private void initialize(Plugin plugin, String model) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.deepseek.token", null);
-        this.aiModel = plugin.getConfig().getString("ai.deepseek.model", "deepseek-chat");
+        this.aiModel = model;
         plugin.getLogger().info("Platform: DeepSeek");
         plugin.getLogger().info("Model: " + aiModel);
     }
@@ -71,10 +70,8 @@ public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngine
 
             payload.add("messages", messages);
 
-            // Send request body
             try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = payload.toString().getBytes(StandardCharsets.UTF_8);
-                os.write(input, 0, input.length);
+                os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
             }
 
             int statusCode = conn.getResponseCode();
@@ -83,17 +80,14 @@ public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngine
                 return "Error: Unable to get response from DeepSeek API";
             }
 
-            // Read response
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
             StringBuilder responseBuilder = new StringBuilder();
             String line;
-
             while ((line = in.readLine()) != null) {
                 responseBuilder.append(line);
             }
             in.close();
 
-            // ✅ Parse JSON response using Gson
             JsonObject responseJson = JsonParser.parseString(responseBuilder.toString()).getAsJsonObject();
             JsonArray choices = responseJson.getAsJsonArray("choices");
 

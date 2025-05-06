@@ -20,20 +20,40 @@ import java.nio.charset.StandardCharsets;
  */
 public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngineArtificialIntelligenceApiModel {
 
-    private final Plugin plugin;
-    private final String token;
-    private final String aiModel;
-    private final String endpoint;
+    private Plugin plugin;
+    private String token;
+    private String aiModel;
+    private String endpoint;
 
     /**
-     * Constructs a new Custom URL AI model handler.
+     * Constructs a new Custom URL AI model handler using the model from plugin configuration.
      *
      * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
      */
     public MCEngineArtificialIntelligenceApiModelCustomUrl(Plugin plugin) {
+        initialize(plugin, plugin.getConfig().getString("ai.custom.model", ""));
+    }
+
+    /**
+     * Constructs a new Custom URL AI model handler using a provided model.
+     *
+     * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
+     * @param model  The AI model name to use.
+     */
+    public MCEngineArtificialIntelligenceApiModelCustomUrl(Plugin plugin, String model) {
+        initialize(plugin, model);
+    }
+
+    /**
+     * Shared initialization logic for both constructors.
+     *
+     * @param plugin The Bukkit plugin instance.
+     * @param model  The AI model name.
+     */
+    private void initialize(Plugin plugin, String model) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.custom.token", null);
-        this.aiModel = plugin.getConfig().getString("ai.custom.model", "");
+        this.aiModel = model;
         this.endpoint = plugin.getConfig().getString("ai.custom.url", "http://localhost:11434/v1/chat/completions");
         plugin.getLogger().info("Using Custom URL at " + endpoint);
         plugin.getLogger().info("Model: " + aiModel);

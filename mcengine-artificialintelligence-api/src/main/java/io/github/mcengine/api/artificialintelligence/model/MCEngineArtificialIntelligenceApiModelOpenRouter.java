@@ -20,19 +20,39 @@ import java.nio.charset.StandardCharsets;
  */
 public class MCEngineArtificialIntelligenceApiModelOpenRouter implements IMCEngineArtificialIntelligenceApiModel {
 
-    private final Plugin plugin;
-    private final String token;
-    private final String aiModel;
+    private Plugin plugin;
+    private String token;
+    private String aiModel;
 
     /**
-     * Constructs a new OpenRouter AI model handler.
+     * Constructs a new OpenRouter AI model handler using the plugin's configured model.
      *
      * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
      */
     public MCEngineArtificialIntelligenceApiModelOpenRouter(Plugin plugin) {
+        initialize(plugin, plugin.getConfig().getString("ai.openrouter.model", "mistralai/mistral-7b-instruct"));
+    }
+
+    /**
+     * Constructs a new OpenRouter AI model handler using a specified model.
+     *
+     * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
+     * @param model  The AI model name to use.
+     */
+    public MCEngineArtificialIntelligenceApiModelOpenRouter(Plugin plugin, String model) {
+        initialize(plugin, model);
+    }
+
+    /**
+     * Shared initialization logic for both constructors.
+     *
+     * @param plugin The Bukkit plugin instance.
+     * @param model  The AI model name.
+     */
+    private void initialize(Plugin plugin, String model) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.openrouter.token", null);
-        this.aiModel = plugin.getConfig().getString("ai.openrouter.model", "mistralai/mistral-7b-instruct");
+        this.aiModel = model;
         plugin.getLogger().info("Platform: OpenRouter");
         plugin.getLogger().info("Model: " + aiModel);
     }

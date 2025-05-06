@@ -19,23 +19,22 @@ import java.nio.charset.StandardCharsets;
  */
 public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineArtificialIntelligenceApiModel {
 
-    private final Plugin plugin;
+    private Plugin plugin;
+    private String token;
+    private String aiModel;
 
-    /** The API token used for authentication with OpenAI. */
-    private final String token;
-
-    /** The AI model ID configured in the plugin config. */
-    private final String aiModel;
-
-    /**
-     * Constructs a new OpenAI API model handler using the plugin's configuration.
-     *
-     * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
-     */
     public MCEngineArtificialIntelligenceApiModelOpenAi(Plugin plugin) {
+        initialize(plugin, plugin.getConfig().getString("ai.openai.model", "gpt-3.5-turbo"));
+    }
+
+    public MCEngineArtificialIntelligenceApiModelOpenAi(Plugin plugin, String model) {
+        initialize(plugin, model);
+    }
+
+    private void initialize(Plugin plugin, String model) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.openai.token", null);
-        this.aiModel = plugin.getConfig().getString("ai.openai.model", "gpt-3.5-turbo");
+        this.aiModel = model;
         plugin.getLogger().info("Platform: OpenAI");
         plugin.getLogger().info("Model: " + aiModel);
     }
@@ -66,7 +65,6 @@ public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineAr
             userMessage.addProperty("role", "user");
             userMessage.addProperty("content", message);
             messages.add(userMessage);
-
             payload.add("messages", messages);
 
             try (OutputStream os = conn.getOutputStream()) {
@@ -87,7 +85,6 @@ public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineAr
             }
             in.close();
 
-            // ✅ PARSE RESPONSE WITH GSON
             JsonObject responseJson = JsonParser.parseString(responseBuilder.toString()).getAsJsonObject();
             JsonArray choices = responseJson.getAsJsonArray("choices");
 

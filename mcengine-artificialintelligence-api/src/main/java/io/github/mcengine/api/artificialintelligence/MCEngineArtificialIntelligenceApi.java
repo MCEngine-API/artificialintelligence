@@ -372,55 +372,51 @@ public class MCEngineArtificialIntelligenceApi {
     }
 
     /**
-     * Retrieves the DeepSeek AI model instance.
+     * Creates a new DeepSeek AI model instance with the specified model name.
      * <p>
-     * This method returns the DeepSeek AI model configured by the plugin.
-     * The model parameter is currently unused but reserved for future dynamic model selection.
+     * Each call returns a new instance, allowing different DeepSeek models to be used concurrently.
      *
-     * @param model The name of the DeepSeek model to retrieve (currently unused).
-     * @return The DeepSeek AI model instance.
+     * @param model The name of the DeepSeek model to initialize (e.g., "deepseek-llm").
+     * @return A new {@link IMCEngineArtificialIntelligenceApiModel} instance configured for DeepSeek.
      */
     public IMCEngineArtificialIntelligenceApiModel getAiDeepSeek(String model) {
-        return aiDeepSeek;
+        return new MCEngineArtificialIntelligenceApiModelDeepSeek(plugin, model);
     }
 
     /**
-     * Retrieves the OpenAI model instance.
+     * Creates a new OpenAI model instance with the specified model name.
      * <p>
-     * This method returns the OpenAI model configured by the plugin.
-     * The model parameter is currently unused but reserved for future dynamic model selection.
+     * Each call returns a new instance, allowing different OpenAI models to be used concurrently.
      *
-     * @param model The name of the OpenAI model to retrieve (currently unused).
-     * @return The OpenAI model instance.
+     * @param model The name of the OpenAI model to initialize (e.g., "gpt-4").
+     * @return A new {@link IMCEngineArtificialIntelligenceApiModel} instance configured for OpenAI.
      */
     public IMCEngineArtificialIntelligenceApiModel getAiOpenAi(String model) {
-        return aiOpenAi;
+        return new MCEngineArtificialIntelligenceApiModelOpenAi(plugin, model);
     }
 
     /**
-     * Retrieves the OpenRouter AI model instance.
+     * Creates a new OpenRouter AI model instance with the specified model name.
      * <p>
-     * This method returns the OpenRouter AI model configured by the plugin.
-     * The model parameter is currently unused but reserved for future dynamic model selection.
+     * Each call returns a new instance, allowing different OpenRouter models to be used concurrently.
      *
-     * @param model The name of the OpenRouter model to retrieve (currently unused).
-     * @return The OpenRouter AI model instance.
+     * @param model The name of the OpenRouter model to initialize (e.g., "openrouter-custom").
+     * @return A new {@link IMCEngineArtificialIntelligenceApiModel} instance configured for OpenRouter.
      */
     public IMCEngineArtificialIntelligenceApiModel getAiOpenRouter(String model) {
-        return aiOpenRouter;
+        return new MCEngineArtificialIntelligenceApiModelOpenRouter(plugin, model);
     }
 
     /**
-     * Retrieves the Custom URL AI model instance.
+     * Creates a new Custom URL AI model instance with the specified model name.
      * <p>
-     * This method returns the Custom URL AI model configured by the plugin.
-     * The model parameter is currently unused but reserved for future dynamic model selection.
+     * Each call returns a new instance, allowing different custom URL models to be used concurrently.
      *
-     * @param model The name of the Custom URL model to retrieve (currently unused).
-     * @return The Custom URL AI model instance.
+     * @param model The name of the custom AI model to initialize (e.g., "my-custom-ai").
+     * @return A new {@link IMCEngineArtificialIntelligenceApiModel} instance configured for the custom URL.
      */
     public IMCEngineArtificialIntelligenceApiModel getAiCustomUrl(String model) {
-        return aiCustomUrl;
+        return new MCEngineArtificialIntelligenceApiModelCustomUrl(plugin, model);
     }
 
     /**
