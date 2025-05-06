@@ -99,7 +99,7 @@ public class MCEngineArtificialIntelligenceApi {
             try {
                 HttpURLConnection con = (HttpURLConnection) new URL(apiUrl).openConnection();
                 con.setRequestMethod("GET");
-                con.setRequestProperty("Authorization", github_token);
+                con.setRequestProperty("Authorization", "token " + github_token);
                 con.setRequestProperty("Accept", acceptHeader);
                 con.setDoOutput(true);
 
