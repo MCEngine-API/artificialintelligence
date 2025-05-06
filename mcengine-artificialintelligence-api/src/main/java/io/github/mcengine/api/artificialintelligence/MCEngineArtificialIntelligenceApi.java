@@ -4,11 +4,8 @@ import org.bukkit.plugin.Plugin;
 
 import java.text.ParseException;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.logging.Logger;
 
-import io.github.mcengine.api.artificialintelligence.Metrics;
 import io.github.mcengine.api.artificialintelligence.model.*;
 import io.github.mcengine.api.artificialintelligence.util.*;
 
@@ -17,6 +14,11 @@ import io.github.mcengine.api.artificialintelligence.util.*;
  * Handles AI model initialization, extension loading (AddOns/DLCs), and token validation.
  */
 public class MCEngineArtificialIntelligenceApi {
+
+    /**
+     * Singleton instance of the API.
+     */
+    private static MCEngineArtificialIntelligenceApi instance;
 
     /**
      * The Bukkit plugin instance associated with this AI API.
@@ -35,6 +37,7 @@ public class MCEngineArtificialIntelligenceApi {
      * @param plugin The Bukkit plugin instance.
      */
     public MCEngineArtificialIntelligenceApi(Plugin plugin) {
+        instance = this;
         new Metrics(plugin, 25556);
         this.plugin = plugin;
         this.logger = plugin.getLogger();
@@ -50,6 +53,15 @@ public class MCEngineArtificialIntelligenceApi {
                 registerModel(platform, model);
             }
         }
+    }
+
+    /**
+     * Gets the global API instance.
+     *
+     * @return The {@link MCEngineArtificialIntelligenceApi} singleton instance.
+     */
+    public static MCEngineArtificialIntelligenceApi getApi() {
+        return instance;
     }
 
     public void checkUpdate(String gitPlatform, String org, String repository, String token) {
