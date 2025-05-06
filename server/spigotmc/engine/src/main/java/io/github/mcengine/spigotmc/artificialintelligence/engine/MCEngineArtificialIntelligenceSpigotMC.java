@@ -15,7 +15,6 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
     private String secretKey;
     private String token;
     private Date expirationDate;
-    private MCEngineArtificialIntelligenceApi api;
 
     /**
      * Called when the plugin is enabled.
@@ -56,11 +55,16 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
 
         getLogger().info("Token validated successfully!"); */
 
-        api = new MCEngineArtificialIntelligenceApi(this);
-        scheduleMidnightCheck();
+        MCEngineArtificialIntelligenceApi api = new MCEngineArtificialIntelligenceApi(this);
+
         api.checkUpdate("github", "MCEngine", "artificialintelligence", getConfig().getString("github.token", "null"));
+
+        scheduleMidnightCheck();
     }
 
+    /**
+     * Called when the plugin is disabled.
+     */
     @Override
     public void onDisable() {
         getLogger().info("MCEngineArtificialIntelligenceSpigotMC has been disabled.");
@@ -100,14 +104,5 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
         long now = System.currentTimeMillis();
         long tomorrowMidnight = ((now / (24L * 60L * 60L * 1000L)) + 1L) * (24L * 60L * 60L * 1000L);
         return (tomorrowMidnight - now) / 50L; // Convert ms to ticks
-    }
-
-    /**
-     * Gets the API instance associated with this plugin.
-     *
-     * @return The {@link MCEngineArtificialIntelligenceApi} instance.
-     */
-    public MCEngineArtificialIntelligenceApi getApi() {
-        return api;
     }
 }
