@@ -1,15 +1,17 @@
 package io.github.mcengine.api.artificialintelligence.model;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.github.mcengine.api.artificialintelligence.model.IMCEngineArtificialIntelligenceApiModel;
 import org.bukkit.plugin.Plugin;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 
 /**
  * OpenAI API implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
@@ -55,19 +57,20 @@ public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineAr
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 
-            JSONObject payload = new JSONObject();
-            payload.put("model", aiModel);
-            payload.put("temperature", 0.7);
+            JsonObject payload = new JsonObject();
+            payload.addProperty("model", aiModel);
+            payload.addProperty("temperature", 0.7);
 
-            JSONArray messages = new JSONArray();
-            JSONObject userMessage = new JSONObject();
-            userMessage.put("role", "user");
-            userMessage.put("content", message);
-            messages.put(userMessage);
-            payload.put("messages", messages);
+            JsonArray messages = new JsonArray();
+            JsonObject userMessage = new JsonObject();
+            userMessage.addProperty("role", "user");
+            userMessage.addProperty("content", message);
+            messages.add(userMessage);
+
+            payload.add("messages", messages);
 
             try (OutputStream os = conn.getOutputStream()) {
-                os.write(payload.toString().getBytes("utf-8"));
+                os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
             }
 
             int responseCode = conn.getResponseCode();
@@ -76,7 +79,7 @@ public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineAr
                 return "Error: OpenAI API request failed.";
             }
 
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
             StringBuilder responseBuilder = new StringBuilder();
             String line;
             while ((line = in.readLine()) != null) {
@@ -84,12 +87,13 @@ public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineAr
             }
             in.close();
 
-            JSONObject responseJson = new JSONObject(responseBuilder.toString());
-            JSONArray choices = responseJson.getJSONArray("choices");
+            // ✅ PARSE RESPONSE WITH GSON
+            JsonObject responseJson = JsonParser.parseString(responseBuilder.toString()).getAsJsonObject();
+            JsonArray choices = responseJson.getAsJsonArray("choices");
 
-            if (choices.length() > 0) {
-                JSONObject messageObj = choices.getJSONObject(0).getJSONObject("message");
-                return messageObj.getString("content").trim();
+            if (choices.size() > 0) {
+                JsonObject messageObj = choices.get(0).getAsJsonObject().getAsJsonObject("message");
+                return messageObj.get("content").getAsString().trim();
             }
 
             return "No response from OpenAI.";

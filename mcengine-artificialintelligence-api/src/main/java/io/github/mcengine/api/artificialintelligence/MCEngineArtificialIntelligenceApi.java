@@ -36,6 +36,8 @@ import io.github.mcengine.api.artificialintelligence.model.*;
  */
 public class MCEngineArtificialIntelligenceApi {
 
+    private final String github_token;
+
     private final Plugin plugin;
     private final Logger logger;
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
@@ -52,6 +54,7 @@ public class MCEngineArtificialIntelligenceApi {
         new Metrics(plugin, 25556);
         this.plugin = plugin;
         this.logger = plugin.getLogger();
+        this.github_token = plugin.getConfig().getString("github.token", "null");
         loadAddOns();
         loadDLCs();
 
@@ -96,6 +99,7 @@ public class MCEngineArtificialIntelligenceApi {
             try {
                 HttpURLConnection con = (HttpURLConnection) new URL(apiUrl).openConnection();
                 con.setRequestMethod("GET");
+                con.setRequestProperty("Authorization", github_token);
                 con.setRequestProperty("Accept", acceptHeader);
                 con.setDoOutput(true);
 

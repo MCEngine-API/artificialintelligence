@@ -54,12 +54,12 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
             return;
         }
 
-        getLogger().info("✅ Token validated successfully!");
+        getLogger().info("Token validated successfully!");
 
         api = new MCEngineArtificialIntelligenceApi(this);
         scheduleMidnightCheck();
 
-        api.checkUpdate();
+        api.checkUpdate("github", "MCEngine", "artificialintelligence");
     }
 
     @Override

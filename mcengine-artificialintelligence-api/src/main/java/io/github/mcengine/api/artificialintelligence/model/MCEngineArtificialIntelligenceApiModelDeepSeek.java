@@ -1,9 +1,10 @@
 package io.github.mcengine.api.artificialintelligence.model;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.github.mcengine.api.artificialintelligence.model.IMCEngineArtificialIntelligenceApiModel;
 import org.bukkit.plugin.Plugin;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -11,6 +12,7 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 
 /**
  * DeepSeek implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
@@ -57,21 +59,21 @@ public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngine
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 
-            // Construct JSON payload
-            JSONObject payload = new JSONObject();
-            payload.put("model", aiModel);
-            payload.put("temperature", 0.7);
+            JsonObject payload = new JsonObject();
+            payload.addProperty("model", aiModel);
+            payload.addProperty("temperature", 0.7);
 
-            JSONArray messages = new JSONArray();
-            JSONObject userMessage = new JSONObject();
-            userMessage.put("role", "user");
-            userMessage.put("content", message);
-            messages.put(userMessage);
-            payload.put("messages", messages);
+            JsonArray messages = new JsonArray();
+            JsonObject userMessage = new JsonObject();
+            userMessage.addProperty("role", "user");
+            userMessage.addProperty("content", message);
+            messages.add(userMessage);
+
+            payload.add("messages", messages);
 
             // Send request body
             try (OutputStream os = conn.getOutputStream()) {
-                byte[] input = payload.toString().getBytes("utf-8");
+                byte[] input = payload.toString().getBytes(StandardCharsets.UTF_8);
                 os.write(input, 0, input.length);
             }
 
@@ -82,7 +84,7 @@ public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngine
             }
 
             // Read response
-            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
             StringBuilder responseBuilder = new StringBuilder();
             String line;
 
@@ -91,13 +93,13 @@ public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngine
             }
             in.close();
 
-            // Parse response
-            JSONObject responseJson = new JSONObject(responseBuilder.toString());
-            JSONArray choices = responseJson.getJSONArray("choices");
+            // ✅ Parse JSON response using Gson
+            JsonObject responseJson = JsonParser.parseString(responseBuilder.toString()).getAsJsonObject();
+            JsonArray choices = responseJson.getAsJsonArray("choices");
 
-            if (choices.length() > 0) {
-                JSONObject messageObj = choices.getJSONObject(0).getJSONObject("message");
-                return messageObj.getString("content").trim();
+            if (choices.size() > 0) {
+                JsonObject messageObj = choices.get(0).getAsJsonObject().getAsJsonObject("message");
+                return messageObj.get("content").getAsString().trim();
             }
 
             return "No response from DeepSeek AI.";
