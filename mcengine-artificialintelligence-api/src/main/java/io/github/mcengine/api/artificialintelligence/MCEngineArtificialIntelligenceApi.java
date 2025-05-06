@@ -1,32 +1,11 @@
 package io.github.mcengine.api.artificialintelligence;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.stream.JsonReader;
-
-import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 
-import java.io.File;
-import java.io.InputStreamReader;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Base64;
 import java.util.Date;
-import java.util.Enumeration;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.jar.JarEntry;
-import java.util.jar.JarFile;
 import java.util.logging.Logger;
 
 import io.github.mcengine.api.artificialintelligence.Metrics;
