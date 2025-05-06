@@ -28,8 +28,6 @@ public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngine
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.deepseek.token", null);
         this.aiModel = model;
-        plugin.getLogger().info("Platform: DeepSeek");
-        plugin.getLogger().info("Model: " + aiModel);
     }
 
     /**

@@ -34,8 +34,6 @@ public class MCEngineArtificialIntelligenceApiModelOpenRouter implements IMCEngi
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.openrouter.token", null);
         this.aiModel = model;
-        plugin.getLogger().info("Platform: OpenRouter");
-        plugin.getLogger().info("Model: " + aiModel);
     }
 
     /**

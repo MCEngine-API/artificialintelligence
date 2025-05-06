@@ -27,8 +27,6 @@ public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineAr
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.openai.token", null);
         this.aiModel = model;
-        plugin.getLogger().info("Platform: OpenAI");
-        plugin.getLogger().info("Model: " + aiModel);
     }
 
     /**
