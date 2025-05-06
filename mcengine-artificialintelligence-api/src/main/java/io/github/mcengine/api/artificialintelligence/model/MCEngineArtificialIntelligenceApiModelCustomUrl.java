@@ -31,7 +31,7 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
      * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
      */
     public MCEngineArtificialIntelligenceApiModelCustomUrl(Plugin plugin) {
-        initialize(plugin, plugin.getConfig().getString("ai.custom.model", ""));
+        initialize(plugin, plugin.getConfig().getString("ai.custom.model", "null"));
     }
 
     /**
