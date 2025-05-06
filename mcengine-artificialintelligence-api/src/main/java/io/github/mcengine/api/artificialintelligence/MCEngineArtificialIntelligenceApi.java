@@ -22,7 +22,9 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Logger;
@@ -75,6 +77,9 @@ public class MCEngineArtificialIntelligenceApi {
      * The AI model instance for a custom URL endpoint.
      */
     private final IMCEngineArtificialIntelligenceApiModel aiCustomUrl;
+
+    // 🔥 GLOBAL cache shared across ALL plugins (platform → (model → instance))
+    private static final Map<String, Map<String, IMCEngineArtificialIntelligenceApiModel>> modelCache = new HashMap<>();
 
     /**
      * Constructs a new AI API instance with the given plugin.
@@ -372,51 +377,58 @@ public class MCEngineArtificialIntelligenceApi {
     }
 
     /**
-     * Creates a new DeepSeek AI model instance with the specified model name.
-     * <p>
-     * Each call returns a new instance, allowing different DeepSeek models to be used concurrently.
+     * Returns AI model for given platform and model name.
+     * If already created → returns cached instance.
+     * Else → creates, caches, and returns.
      *
-     * @param model The name of the DeepSeek model to initialize (e.g., "deepseek-llm").
-     * @return A new {@link IMCEngineArtificialIntelligenceApiModel} instance configured for DeepSeek.
+     * @param platform Platform name (e.g., "openai", "deepseek", "openrouter", "customurl")
+     * @param model    Model name
+     * @return         AI model instance
      */
-    public IMCEngineArtificialIntelligenceApiModel getAiDeepSeek(String model) {
-        return new MCEngineArtificialIntelligenceApiModelDeepSeek(plugin, model);
+    public IMCEngineArtificialIntelligenceApiModel getAi(String platform, String model) {
+        platform = platform.toLowerCase(); // normalize
+        synchronized (modelCache) {
+            modelCache.putIfAbsent(platform, new HashMap<>());
+            Map<String, IMCEngineArtificialIntelligenceApiModel> platformMap = modelCache.get(platform);
+
+            if (platformMap.containsKey(model)) {
+                return platformMap.get(model);
+            }
+
+            IMCEngineArtificialIntelligenceApiModel aiModel;
+            switch (platform) {
+                case "openai":
+                    aiModel = new MCEngineArtificialIntelligenceApiModelOpenAi(plugin, model);
+                    break;
+                case "deepseek":
+                    aiModel = new MCEngineArtificialIntelligenceApiModelDeepSeek(plugin, model);
+                    break;
+                case "openrouter":
+                    aiModel = new MCEngineArtificialIntelligenceApiModelOpenRouter(plugin, model);
+                    break;
+                case "customurl":
+                    aiModel = new MCEngineArtificialIntelligenceApiModelCustomUrl(plugin, model);
+                    break;
+                default:
+                    throw new IllegalArgumentException("Unsupported AI platform: " + platform);
+            }
+
+            platformMap.put(model, aiModel);
+            logger.info("[AI] Created new model → platform=" + platform + ", model=" + model);
+            return aiModel;
+        }
     }
 
     /**
-     * Creates a new OpenAI model instance with the specified model name.
-     * <p>
-     * Each call returns a new instance, allowing different OpenAI models to be used concurrently.
+     * Shortcut to get response from AI.
      *
-     * @param model The name of the OpenAI model to initialize (e.g., "gpt-4").
-     * @return A new {@link IMCEngineArtificialIntelligenceApiModel} instance configured for OpenAI.
+     * @param platform AI platform
+     * @param model    model name
+     * @param message  prompt message
+     * @return response from AI
      */
-    public IMCEngineArtificialIntelligenceApiModel getAiOpenAi(String model) {
-        return new MCEngineArtificialIntelligenceApiModelOpenAi(plugin, model);
-    }
-
-    /**
-     * Creates a new OpenRouter AI model instance with the specified model name.
-     * <p>
-     * Each call returns a new instance, allowing different OpenRouter models to be used concurrently.
-     *
-     * @param model The name of the OpenRouter model to initialize (e.g., "openrouter-custom").
-     * @return A new {@link IMCEngineArtificialIntelligenceApiModel} instance configured for OpenRouter.
-     */
-    public IMCEngineArtificialIntelligenceApiModel getAiOpenRouter(String model) {
-        return new MCEngineArtificialIntelligenceApiModelOpenRouter(plugin, model);
-    }
-
-    /**
-     * Creates a new Custom URL AI model instance with the specified model name.
-     * <p>
-     * Each call returns a new instance, allowing different custom URL models to be used concurrently.
-     *
-     * @param model The name of the custom AI model to initialize (e.g., "my-custom-ai").
-     * @return A new {@link IMCEngineArtificialIntelligenceApiModel} instance configured for the custom URL.
-     */
-    public IMCEngineArtificialIntelligenceApiModel getAiCustomUrl(String model) {
-        return new MCEngineArtificialIntelligenceApiModelCustomUrl(plugin, model);
+    public String getResponse(String platform, String model, String message) {
+        return getAi(platform, model).getResponse(message);
     }
 
     /**
