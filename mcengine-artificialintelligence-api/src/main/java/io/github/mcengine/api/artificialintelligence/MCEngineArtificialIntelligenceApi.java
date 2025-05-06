@@ -377,22 +377,20 @@ public class MCEngineArtificialIntelligenceApi {
     }
 
     /**
-     * Returns AI model for given platform and model name.
-     * If already created → returns cached instance.
-     * Else → creates, caches, and returns.
+     * Registers an AI model instance if not already cached.
+     * Called once per platform/model to initialize.
      *
-     * @param platform Platform name (e.g., "openai", "deepseek", "openrouter", "customurl")
-     * @param model    Model name
-     * @return         AI model instance
+     * @param platform AI platform
+     * @param model    model name
      */
-    public IMCEngineArtificialIntelligenceApiModel getAi(String platform, String model) {
+    public void registerModel(String platform, String model) {
         platform = platform.toLowerCase(); // normalize
         synchronized (modelCache) {
             modelCache.putIfAbsent(platform, new HashMap<>());
             Map<String, IMCEngineArtificialIntelligenceApiModel> platformMap = modelCache.get(platform);
 
             if (platformMap.containsKey(model)) {
-                return platformMap.get(model);
+                return; // Already registered
             }
 
             IMCEngineArtificialIntelligenceApiModel aiModel;
@@ -414,8 +412,25 @@ public class MCEngineArtificialIntelligenceApi {
             }
 
             platformMap.put(model, aiModel);
-            logger.info("[AI] Created new model → platform=" + platform + ", model=" + model);
-            return aiModel;
+            logger.info("Registered model → platform=" + platform + ", model=" + model);
+        }
+    }
+
+    /**
+     * Retrieves the registered AI model instance.
+     *
+     * @param platform AI platform
+     * @param model    model name
+     * @return AI model instance
+     */
+    public IMCEngineArtificialIntelligenceApiModel getAi(String platform, String model) {
+        platform = platform.toLowerCase(); // normalize
+        synchronized (modelCache) {
+            Map<String, IMCEngineArtificialIntelligenceApiModel> platformMap = modelCache.get(platform);
+            if (platformMap == null || !platformMap.containsKey(model)) {
+                throw new IllegalStateException("AI model not registered → platform=" + platform + ", model=" + model);
+            }
+            return platformMap.get(model);
         }
     }
 
