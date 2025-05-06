@@ -31,17 +31,13 @@ import java.util.logging.Logger;
 
 import io.github.mcengine.api.artificialintelligence.Metrics;
 import io.github.mcengine.api.artificialintelligence.model.*;
+import io.github.mcengine.api.artificialintelligence.util.*;
 
 /**
  * Main API class for MCEngineArtificialIntelligence.
  * Handles AI model initialization, extension loading (AddOns/DLCs), and token validation.
  */
 public class MCEngineArtificialIntelligenceApi {
-
-    /**
-     * The GitHub token used for API authentication when checking for updates.
-     */
-    private final String github_token;
 
     /**
      * The Bukkit plugin instance associated with this AI API.
@@ -52,11 +48,6 @@ public class MCEngineArtificialIntelligenceApi {
      * Logger for logging plugin-related messages.
      */
     private final Logger logger;
-
-    /**
-     * Date format used for parsing and formatting expiration dates.
-     */
-    private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
     /**
      * The AI model instance for DeepSeek.
@@ -91,7 +82,6 @@ public class MCEngineArtificialIntelligenceApi {
         new Metrics(plugin, 25556);
         this.plugin = plugin;
         this.logger = plugin.getLogger();
-        this.github_token = plugin.getConfig().getString("github.token", "null");
         loadAddOns();
         loadDLCs();
 
@@ -102,89 +92,8 @@ public class MCEngineArtificialIntelligenceApi {
         this.aiCustomUrl = new MCEngineArtificialIntelligenceApiModelCustomUrl(plugin);
     }
 
-    public void checkUpdate(String gitPlatform, String org, String repository) {
-        switch (gitPlatform.toLowerCase()) {
-            case "github":
-                checkUpdateGitHub(org, repository);
-                break;
-            case "gitlab":
-                checkUpdateGitLab(org, repository);
-                break;
-            default:
-                logger.warning("Unknown platform: " + gitPlatform);
-        }
-    }
-
-    private void checkUpdateGitHub(String org, String repository) {
-        String apiUrl = String.format("https://api.github.com/repos/%s/%s/releases/latest", org, repository);
-        String downloadUrl = String.format("https://github.com/%s/%s/releases", org, repository);
-        fetchAndCompareUpdate(apiUrl, downloadUrl, "application/vnd.github.v3+json", false);
-    }
-
-    private void checkUpdateGitLab(String org, String repository) {
-        String apiUrl = String.format("https://gitlab.com/api/v4/projects/%s%%2F%s/releases", org, repository);
-        String downloadUrl = String.format("https://gitlab.com/%s/%s/-/releases", org, repository);
-        fetchAndCompareUpdate(apiUrl, downloadUrl, "application/json", true);
-    }
-
-    private void fetchAndCompareUpdate(String apiUrl, String downloadUrl, String acceptHeader, boolean jsonArray) {
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
-            try {
-                HttpURLConnection con = (HttpURLConnection) new URL(apiUrl).openConnection();
-                con.setRequestMethod("GET");
-                con.setRequestProperty("Authorization", "token " + github_token);
-                con.setRequestProperty("Accept", acceptHeader);
-                con.setDoOutput(true);
-
-                JsonReader reader = new JsonReader(new InputStreamReader(con.getInputStream()));
-                String latestVersion;
-
-                if (jsonArray) {
-                    // GitLab returns array
-                    var jsonArrayObj = JsonParser.parseReader(reader).getAsJsonArray();
-                    latestVersion = jsonArrayObj.size() > 0 ? jsonArrayObj.get(0).getAsJsonObject().get("tag_name").getAsString() : null;
-                } else {
-                    // GitHub returns object
-                    var jsonObject = JsonParser.parseReader(reader).getAsJsonObject();
-                    latestVersion = jsonObject.get("tag_name").getAsString();
-                }
-
-                if (latestVersion == null) {
-                    logger.warning("Could not find release tag from API: " + apiUrl);
-                    return;
-                }
-
-                String version = plugin.getDescription().getVersion();
-                boolean changed = isUpdateAvailable(version, latestVersion);
-
-                if (changed) {
-                    List<String> updateMessages = new ArrayList<>();
-                    updateMessages.add("§9[MCEngineArtificialIntelligence]§r §6A new update is available!");
-                    updateMessages.add("§9[MCEngineArtificialIntelligence]§r Current version: §e" + version + " §r>> Latest: §a" + latestVersion);
-                    updateMessages.add("§9[MCEngineArtificialIntelligence]§r Download: §b" + downloadUrl);
-
-                    updateMessages.forEach(msg -> Bukkit.getConsoleSender().sendMessage(msg));
-                } else {
-                    logger.info("No updates found. You are running the latest version.");
-                }
-            } catch (Exception ex) {
-                logger.warning("Could not check for updates from " + apiUrl + ": " + ex.getMessage());
-            }
-        });
-    }
-
-    private boolean isUpdateAvailable(String currentVersion, String latestVersion) {
-        String[] lv = latestVersion.split("\\.");
-        String[] cv = currentVersion.split("\\.");
-
-        boolean changed = lv.length != cv.length;
-        changed = changed || !lv[0].equals(cv[0]); // Major
-        if (!changed && lv.length > 1 && cv.length > 1)
-            changed = changed || !lv[1].equals(cv[1]); // Minor
-        if (!changed && lv.length > 2 && cv.length > 2)
-            changed = changed || !lv[2].equals(cv[2]); // Patch
-
-        return changed;
+    public void checkUpdate(String gitPlatform, String org, String repository, String token) {
+        MCEngineArtificialIntelligenceApiUtilUpdate.checkUpdate(plugin, gitPlatform, org, repository, token);
     }
 
     /**
@@ -200,86 +109,14 @@ public class MCEngineArtificialIntelligenceApi {
      * Loads AI AddOns from the "addons" folder.
      */
     private void loadAddOns() {
-        loadExtensions("addons", "AddOn");
+        MCEngineArtificialIntelligenceApiUtilExtension.loadExtensions(plugin, "addons", "AddOn");
     }
 
     /**
      * Loads AI DLCs from the "dlcs" folder.
      */
     private void loadDLCs() {
-        loadExtensions("dlcs", "DLC");
-    }
-
-    /**
-     * Loads extensions (AddOns or DLCs) from the specified folder.
-     * Scans JAR files for classes with an "onLoad(Plugin)" method and invokes them.
-     *
-     * @param folderName The folder name (relative to the plugin data folder).
-     * @param type       The extension type label (e.g., "AddOn", "DLC").
-     */
-    private void loadExtensions(String folderName, String type) {
-        File folder = new File(plugin.getDataFolder(), folderName);
-
-        if (!folder.exists() && !folder.mkdirs()) {
-            logger.warning("[" + type + "] Could not create " + folderName + " directory.");
-            return;
-        }
-
-        File[] files = folder.listFiles(file -> file.isFile() && file.getName().endsWith(".jar"));
-        if (files == null || files.length == 0) {
-            logger.info("[" + type + "] No " + folderName + " found.");
-            return;
-        }
-
-        for (File file : files) {
-            try (
-                URLClassLoader classLoader = new URLClassLoader(
-                    new URL[]{file.toURI().toURL()},
-                    this.getClass().getClassLoader()
-                );
-                JarFile jar = new JarFile(file)
-            ) {
-                Enumeration<JarEntry> entries = jar.entries();
-
-                while (entries.hasMoreElements()) {
-                    JarEntry entry = entries.nextElement();
-                    String name = entry.getName();
-
-                    if (!name.endsWith(".class") || name.contains("$")) {
-                        continue;
-                    }
-
-                    String className = name.replace("/", ".").replace(".class", "");
-
-                    try {
-                        Class<?> clazz = classLoader.loadClass(className);
-
-                        if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
-                            continue;
-                        }
-
-                        Method onLoadMethod;
-                        try {
-                            onLoadMethod = clazz.getMethod("onLoad", Plugin.class);
-                        } catch (NoSuchMethodException e) {
-                            continue;
-                        }
-
-                        Object extensionInstance = clazz.getDeclaredConstructor().newInstance();
-                        onLoadMethod.invoke(extensionInstance, plugin);
-
-                        logger.info("[" + type + "] Loaded: " + className);
-
-                    } catch (Throwable e) {
-                        logger.warning("[" + type + "] Failed to load class: " + className);
-                        e.printStackTrace();
-                    }
-                }
-            } catch (Exception e) {
-                logger.warning("[" + type + "] Error loading " + type + " JAR: " + file.getName());
-                e.printStackTrace();
-            }
-        }
+        MCEngineArtificialIntelligenceApiUtilExtension.loadExtensions(plugin, "dlcs", "DLC");
     }
 
     /**
@@ -291,13 +128,7 @@ public class MCEngineArtificialIntelligenceApi {
      * @throws IllegalArgumentException If the input type is unsupported.
      */
     private static Date parseExpirationDate(Object input) throws ParseException {
-        if (input instanceof Date) {
-            return (Date) input;
-        } else if (input instanceof String) {
-            return DATE_FORMAT.parse((String) input);
-        } else {
-            throw new IllegalArgumentException("Unsupported expiration date input: " + input);
-        }
+        return MCEngineArtificialIntelligenceApiUtilToken.parseExpirationDate(input);
     }
 
     /**
@@ -310,38 +141,7 @@ public class MCEngineArtificialIntelligenceApi {
      * @return True if the token is valid and not expired; false otherwise.
      */
     public static boolean validateToken(String pluginName, String secretKey, String token, Object nowDateInput) {
-        try {
-            Date nowDate = parseExpirationDate(nowDateInput);
-
-            byte[] decodedBytes = Base64.getUrlDecoder().decode(token);
-            String decodedPayload = new String(decodedBytes);
-
-            String[] parts = decodedPayload.split(":");
-            if (parts.length != 4) {
-                return false;
-            }
-
-            String tokenPluginName = parts[0];
-            String tokenSecretKey = parts[1];
-            String expirationDateStr = parts[2];
-
-            if (!tokenPluginName.equals(pluginName)) {
-                return false;
-            }
-
-            if (!tokenSecretKey.equals(secretKey)) {
-                return false;
-            }
-
-            Date expirationDate = DATE_FORMAT.parse(expirationDateStr);
-
-            String todayStr = DATE_FORMAT.format(nowDate);
-            Date todayDate = DATE_FORMAT.parse(todayStr);
-
-            return !todayDate.after(expirationDate);
-        } catch (Exception e) {
-            return false;
-        }
+        return MCEngineArtificialIntelligenceApiUtilToken.validateToken(pluginName, secretKey, token, nowDateInput);
     }
 
     /**
@@ -353,27 +153,7 @@ public class MCEngineArtificialIntelligenceApi {
      * @return The extracted expiration date, or a date representing epoch time (0) if invalid.
      */
     public static Date extractExpirationDate(String pluginName, String secretKey, String token) {
-        try {
-            byte[] decodedBytes = Base64.getUrlDecoder().decode(token);
-            String decodedPayload = new String(decodedBytes);
-
-            String[] parts = decodedPayload.split(":");
-            if (parts.length != 4) {
-                return new Date(0L);
-            }
-
-            String tokenPluginName = parts[0];
-            String tokenSecretKey = parts[1];
-            String expirationDateStr = parts[2];
-
-            if (!tokenPluginName.equals(pluginName) || !tokenSecretKey.equals(secretKey)) {
-                return new Date(0L);
-            }
-
-            return DATE_FORMAT.parse(expirationDateStr);
-        } catch (Exception e) {
-            return new Date(0L);
-        }
+        return MCEngineArtificialIntelligenceApiUtilToken.extractExpirationDate(pluginName, secretKey, token);
     }
 
     /**
@@ -384,36 +164,7 @@ public class MCEngineArtificialIntelligenceApi {
      * @param model    model name
      */
     public void registerModel(String platform, String model) {
-        platform = platform.toLowerCase(); // normalize
-        synchronized (modelCache) {
-            modelCache.putIfAbsent(platform, new HashMap<>());
-            Map<String, IMCEngineArtificialIntelligenceApiModel> platformMap = modelCache.get(platform);
-
-            if (platformMap.containsKey(model)) {
-                return; // Already registered
-            }
-
-            IMCEngineArtificialIntelligenceApiModel aiModel;
-            switch (platform) {
-                case "openai":
-                    aiModel = new MCEngineArtificialIntelligenceApiModelOpenAi(plugin, model);
-                    break;
-                case "deepseek":
-                    aiModel = new MCEngineArtificialIntelligenceApiModelDeepSeek(plugin, model);
-                    break;
-                case "openrouter":
-                    aiModel = new MCEngineArtificialIntelligenceApiModelOpenRouter(plugin, model);
-                    break;
-                case "customurl":
-                    aiModel = new MCEngineArtificialIntelligenceApiModelCustomUrl(plugin, model);
-                    break;
-                default:
-                    throw new IllegalArgumentException("Unsupported AI platform: " + platform);
-            }
-
-            platformMap.put(model, aiModel);
-            logger.info("Registered model → platform=" + platform + ", model=" + model);
-        }
+        MCEngineArtificialIntelligenceApiUtilAi.registerModel(plugin, platform, model);
     }
 
     /**
@@ -424,14 +175,7 @@ public class MCEngineArtificialIntelligenceApi {
      * @return AI model instance
      */
     public IMCEngineArtificialIntelligenceApiModel getAi(String platform, String model) {
-        platform = platform.toLowerCase(); // normalize
-        synchronized (modelCache) {
-            Map<String, IMCEngineArtificialIntelligenceApiModel> platformMap = modelCache.get(platform);
-            if (platformMap == null || !platformMap.containsKey(model)) {
-                throw new IllegalStateException("AI model not registered → platform=" + platform + ", model=" + model);
-            }
-            return platformMap.get(model);
-        }
+        return MCEngineArtificialIntelligenceApiUtilAi.getAi(platform, model);
     }
 
     /**

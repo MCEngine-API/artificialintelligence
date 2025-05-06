@@ -58,8 +58,7 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
 
         api = new MCEngineArtificialIntelligenceApi(this);
         scheduleMidnightCheck();
-
-        api.checkUpdate("github", "MCEngine", "artificialintelligence");
+        api.checkUpdate("github", "MCEngine", "artificialintelligence", getConfig().getString("github.token", "null"));
     }
 
     @Override
