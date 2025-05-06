@@ -26,31 +26,12 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
     private String endpoint;
 
     /**
-     * Constructs a new Custom URL AI model handler using the model from plugin configuration.
-     *
-     * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
-     */
-    public MCEngineArtificialIntelligenceApiModelCustomUrl(Plugin plugin) {
-        initialize(plugin, plugin.getConfig().getString("ai.custom.model", "null"));
-    }
-
-    /**
      * Constructs a new Custom URL AI model handler using a provided model.
      *
      * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
      * @param model  The AI model name to use.
      */
     public MCEngineArtificialIntelligenceApiModelCustomUrl(Plugin plugin, String model) {
-        initialize(plugin, model);
-    }
-
-    /**
-     * Shared initialization logic for both constructors.
-     *
-     * @param plugin The Bukkit plugin instance.
-     * @param model  The AI model name.
-     */
-    private void initialize(Plugin plugin, String model) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.custom.token", null);
         this.aiModel = model;

@@ -25,31 +25,12 @@ public class MCEngineArtificialIntelligenceApiModelOpenRouter implements IMCEngi
     private String aiModel;
 
     /**
-     * Constructs a new OpenRouter AI model handler using the plugin's configured model.
-     *
-     * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
-     */
-    public MCEngineArtificialIntelligenceApiModelOpenRouter(Plugin plugin) {
-        initialize(plugin, plugin.getConfig().getString("ai.openrouter.model", "mistralai/mistral-7b-instruct"));
-    }
-
-    /**
      * Constructs a new OpenRouter AI model handler using a specified model.
      *
      * @param plugin The Bukkit plugin instance to retrieve configuration and logger.
      * @param model  The AI model name to use.
      */
     public MCEngineArtificialIntelligenceApiModelOpenRouter(Plugin plugin, String model) {
-        initialize(plugin, model);
-    }
-
-    /**
-     * Shared initialization logic for both constructors.
-     *
-     * @param plugin The Bukkit plugin instance.
-     * @param model  The AI model name.
-     */
-    private void initialize(Plugin plugin, String model) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.openrouter.token", null);
         this.aiModel = model;

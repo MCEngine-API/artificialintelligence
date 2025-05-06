@@ -23,15 +23,7 @@ public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineAr
     private String token;
     private String aiModel;
 
-    public MCEngineArtificialIntelligenceApiModelOpenAi(Plugin plugin) {
-        initialize(plugin, plugin.getConfig().getString("ai.openai.model", "gpt-3.5-turbo"));
-    }
-
     public MCEngineArtificialIntelligenceApiModelOpenAi(Plugin plugin, String model) {
-        initialize(plugin, model);
-    }
-
-    private void initialize(Plugin plugin, String model) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.openai.token", null);
         this.aiModel = model;

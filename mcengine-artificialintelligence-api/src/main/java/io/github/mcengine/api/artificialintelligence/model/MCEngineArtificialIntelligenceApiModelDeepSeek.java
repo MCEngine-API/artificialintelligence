@@ -24,15 +24,7 @@ public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngine
     private String token;
     private String aiModel;
 
-    public MCEngineArtificialIntelligenceApiModelDeepSeek(Plugin plugin) {
-        initialize(plugin, plugin.getConfig().getString("ai.deepseek.model", "deepseek-chat"));
-    }
-
     public MCEngineArtificialIntelligenceApiModelDeepSeek(Plugin plugin, String model) {
-        initialize(plugin, model);
-    }
-
-    private void initialize(Plugin plugin, String model) {
         this.plugin = plugin;
         this.token = plugin.getConfig().getString("ai.deepseek.token", null);
         this.aiModel = model;
