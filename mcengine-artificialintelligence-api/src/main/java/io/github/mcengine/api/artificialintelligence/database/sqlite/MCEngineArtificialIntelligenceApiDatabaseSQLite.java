@@ -77,7 +77,7 @@ public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngin
             plugin.getLogger().info("Token saved successfully.");
         } catch (SQLException e) {
             e.printStackTrace();
-            plugin.getLogger().info("Failed to save token.");
+            plugin.getLogger().warning("Failed to save token.");
         }
     }
 
