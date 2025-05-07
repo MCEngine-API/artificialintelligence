@@ -3,7 +3,6 @@ package io.github.mcengine.api.artificialintelligence.model;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.github.mcengine.api.artificialintelligence.model.IMCEngineArtificialIntelligenceApiModel;
 import org.bukkit.plugin.Plugin;
 
 import java.io.BufferedReader;
@@ -20,10 +19,31 @@ import java.nio.charset.StandardCharsets;
  */
 public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngineArtificialIntelligenceApiModel {
 
-    private Plugin plugin;
-    private String token;
-    private String endpoint;
-    private String aiModel;
+    /**
+     * The Bukkit plugin instance used for accessing configuration and logging.
+     */
+    private final Plugin plugin;
+
+    /**
+     * The identifier for the custom AI server (used to fetch config values like token and endpoint).
+     */
+    private final String serverName;
+
+    /**
+     * The default authentication token defined in the config for this server.
+     * Used if a user-specific token is not provided.
+     */
+    private final String defaultToken;
+
+    /**
+     * The full URL of the custom API endpoint for this AI model.
+     */
+    private final String endpoint;
+
+    /**
+     * The name of the AI model to be used in API requests.
+     */
+    private final String aiModel;
 
     /**
      * Constructs a new Custom URL AI model handler for a specific server and model.
@@ -38,20 +58,40 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
      */
     public MCEngineArtificialIntelligenceApiModelCustomUrl(Plugin plugin, String server, String model) {
         this.plugin = plugin;
+        this.serverName = server;
         String configBase = "ai.custom." + server + ".";
-        this.token = plugin.getConfig().getString(configBase + "token", null);
+        this.defaultToken = plugin.getConfig().getString(configBase + "token", null);
         this.endpoint = plugin.getConfig().getString(configBase + "url", "http://localhost:11434/v1/chat/completions");
         this.aiModel = model;
     }
 
     /**
-     * Sends a user message to the custom API endpoint and returns the AI's response.
+     * Sends a user message to the custom API endpoint using the default token from config
+     * and returns the AI's response.
      *
      * @param message The user input message to send.
      * @return The AI-generated response string.
      */
     @Override
     public String getResponse(String message) {
+        return getResponse(defaultToken, message);
+    }
+
+    /**
+     * Sends a user message to the custom API endpoint using the provided user-specific token
+     * and returns the AI's response.
+     *
+     * @param token   The user-specific token used for authentication in the API request.
+     * @param message The user input message to send.
+     * @return The AI-generated response string.
+     */
+    @Override
+    public String getResponse(String token, String message) {
+        if (token == null || token.isEmpty()) {
+            plugin.getLogger().severe("CustomUrl token is missing or invalid.");
+            return "Error: Missing or invalid CustomUrl token.\n Server: " + serverName;
+        }
+
         try {
             URI uri = URI.create(endpoint);
             URL url = uri.toURL();

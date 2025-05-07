@@ -3,7 +3,6 @@ package io.github.mcengine.api.artificialintelligence.model;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.github.mcengine.api.artificialintelligence.model.IMCEngineArtificialIntelligenceApiModel;
 import org.bukkit.plugin.Plugin;
 
 import java.io.BufferedReader;
@@ -20,24 +19,59 @@ import java.nio.charset.StandardCharsets;
  */
 public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngineArtificialIntelligenceApiModel {
 
-    private Plugin plugin;
-    private String token;
-    private String aiModel;
+    /**
+     * The Bukkit plugin instance used for accessing configuration and logging.
+     */
+    private final Plugin plugin;
 
+    /**
+     * The default token configured for accessing the DeepSeek API.
+     * Used when a user-specific token is not provided.
+     */
+    private final String defaultToken;
+
+    /**
+     * The name of the AI model to be used when sending requests to DeepSeek.
+     */
+    private final String aiModel;
+
+    /**
+     * Constructs a DeepSeek model handler instance using configuration and model name.
+     *
+     * @param plugin The Bukkit plugin instance for accessing configuration and logging.
+     * @param model  The name of the AI model to use (e.g., "deepseek-chat").
+     */
     public MCEngineArtificialIntelligenceApiModelDeepSeek(Plugin plugin, String model) {
         this.plugin = plugin;
-        this.token = plugin.getConfig().getString("ai.deepseek.token", null);
+        this.defaultToken = plugin.getConfig().getString("ai.deepseek.token", null);
         this.aiModel = model;
     }
 
     /**
-     * Sends a user message to the DeepSeek API and retrieves the AI's response.
+     * Sends a message to the DeepSeek API using the default token from the configuration.
      *
-     * @param message The user message or prompt to send.
-     * @return The AI's response as a string, or an error message if the request fails.
+     * @param message The user input message or prompt to send.
+     * @return The AI-generated response as a string.
      */
     @Override
     public String getResponse(String message) {
+        return getResponse(defaultToken, message);
+    }
+
+    /**
+     * Sends a message to the DeepSeek API using the provided user-specific token.
+     *
+     * @param token   The user-specific authentication token for DeepSeek.
+     * @param message The user input message or prompt to send.
+     * @return The AI-generated response as a string, or an error message if the request fails.
+     */
+    @Override
+    public String getResponse(String token, String message) {
+        if (token == null || token.isEmpty()) {
+            plugin.getLogger().severe("DeepSeek token is missing or invalid.");
+            return "Error: Missing or invalid DeepSeek token.";
+        }
+
         try {
             URI uri = URI.create("https://api.deepseek.com/v1/chat/completions");
             URL url = uri.toURL();

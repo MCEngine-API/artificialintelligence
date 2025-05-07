@@ -13,4 +13,13 @@ public interface IMCEngineArtificialIntelligenceApiModel {
      * @return The AI-generated response.
      */
     String getResponse(String message);
+
+    /**
+     * Generates a response from the AI using a user-specific token.
+     *
+     * @param token   The user-specific token for authenticating or identifying the request.
+     * @param message The input message or prompt to the AI.
+     * @return The AI-generated response.
+     */
+    String getResponse(String token, String message);
 }

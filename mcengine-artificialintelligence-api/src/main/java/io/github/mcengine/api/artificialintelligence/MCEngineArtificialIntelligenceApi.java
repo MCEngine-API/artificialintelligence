@@ -77,6 +77,16 @@ public class MCEngineArtificialIntelligenceApi {
         return instance;
     }
 
+    /**
+     * Checks for updates by querying the specified Git platform (GitHub, GitLab, etc.)
+     * using the organization, repository, and token provided.
+     * This can be used to inform server owners or developers when a new plugin version is available.
+     *
+     * @param gitPlatform The Git platform to use (e.g., "github", "gitlab").
+     * @param org         The organization or user owning the repository.
+     * @param repository  The repository name.
+     * @param token       The access token to authenticate with the platform API (can be optional for public repos).
+     */
     public void checkUpdate(String gitPlatform, String org, String repository, String token) {
         MCEngineArtificialIntelligenceApiUtilUpdate.checkUpdate(plugin, gitPlatform, org, repository, token);
     }
@@ -173,5 +183,18 @@ public class MCEngineArtificialIntelligenceApi {
      */
     public String getResponse(String platform, String model, String message) {
         return getAi(platform, model).getResponse(message);
+    }
+
+    /**
+     * Shortcut to get response from AI using a token.
+     *
+     * @param platform AI platform
+     * @param model    model name
+     * @param token    API token or user-specific key
+     * @param message  prompt message
+     * @return response from AI
+     */
+    public String getResponse(String platform, String model, String token, String message) {
+        return getAi(platform, model).getResponse(token, message);
     }
 }
