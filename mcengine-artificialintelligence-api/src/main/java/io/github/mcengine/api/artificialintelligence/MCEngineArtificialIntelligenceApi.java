@@ -6,6 +6,8 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.logging.Logger;
 
+import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
+import io.github.mcengine.api.artificialintelligence.database.sqlite.MCEngineArtificialIntelligenceApiDatabaseSQLite;
 import io.github.mcengine.api.artificialintelligence.model.*;
 import io.github.mcengine.api.artificialintelligence.util.*;
 
@@ -19,6 +21,8 @@ public class MCEngineArtificialIntelligenceApi {
      * Singleton instance of the API.
      */
     private static MCEngineArtificialIntelligenceApi instance;
+
+    private final IMCEngineArtificialIntelligenceApiDatabase db;
 
     /**
      * The Bukkit plugin instance associated with this AI API.
@@ -43,6 +47,16 @@ public class MCEngineArtificialIntelligenceApi {
         this.logger = plugin.getLogger();
         loadAddOns();
         loadDLCs();
+
+        // Initialize database based on type
+        String dbType = plugin.getConfig().getString("database.type", "sqlite").toLowerCase();
+        switch (dbType) {
+            case "sqlite":
+                this.db = new MCEngineArtificialIntelligenceApiDatabaseSQLite(plugin);
+                break;
+            default:
+                throw new IllegalArgumentException("Unsupported database type: " + dbType);
+        }
 
         // Load Default AI models
         String[] platforms = { "deepseek", "openai", "openrouter" };
