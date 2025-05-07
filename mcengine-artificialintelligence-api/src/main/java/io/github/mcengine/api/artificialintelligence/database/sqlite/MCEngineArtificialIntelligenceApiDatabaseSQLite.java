@@ -59,7 +59,7 @@ public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngin
      * @param token      The raw (unencrypted) token to store.
      * @return Status message of the operation.
      */
-    public String setPlayerToken(String playerUuid, String platform, String token) {
+    public void setPlayerToken(String playerUuid, String platform, String token) {
         String encryptedToken = MCEngineArtificialIntelligenceApiUtilToken.encryptToken(token);
 
         String sql = """
@@ -74,10 +74,10 @@ public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngin
             stmt.setString(2, platform);
             stmt.setString(3, encryptedToken);
             stmt.executeUpdate();
-            return "Token saved successfully.";
+            plugin.getLogger().info("Token saved successfully.");
         } catch (SQLException e) {
             e.printStackTrace();
-            return "Failed to save token.";
+            plugin.getLogger().info("Failed to save token.");
         }
     }
 

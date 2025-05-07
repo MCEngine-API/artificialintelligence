@@ -12,7 +12,7 @@ public interface IMCEngineArtificialIntelligenceApiDatabase {
      * @param token      The token to associate with the player.
      * @return A message or status result of the operation.
      */
-    String setPlayerToken(String playerUuid, String platform, String token);
+    void setPlayerToken(String playerUuid, String platform, String token);
 
     /**
      * Retrieves the token associated with a specific player UUID.
