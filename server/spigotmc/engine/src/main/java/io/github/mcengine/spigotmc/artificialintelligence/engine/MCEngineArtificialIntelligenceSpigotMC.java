@@ -41,7 +41,7 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
             return;
         }
 
-        expirationDate = MCEngineArtificialIntelligenceApi.extractExpirationDate(getName(), secretKey, token);
+        expirationDate = MCEngineArtificialIntelligenceApiUtilToken.extractExpirationDate(getName(), secretKey, token);
         if (expirationDate == null || expirationDate.getTime() == 0L) {
             getLogger().warning("Failed to extract expiration date from token!");
             getServer().getPluginManager().disablePlugin(this);
@@ -78,7 +78,7 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
      * @return true if the token is valid and not expired; false otherwise.
      */
     private boolean validateToken() {
-        return MCEngineArtificialIntelligenceApi.validateToken(getName(), secretKey, token, new Date());
+        return MCEngineArtificialIntelligenceApiUtilToken.validateToken(getName(), secretKey, token, new Date());
     }
 
     /**

@@ -132,43 +132,6 @@ public class MCEngineArtificialIntelligenceApi {
     }
 
     /**
-     * Parses an expiration date from a supported input.
-     *
-     * @param input The date input (String or Date).
-     * @return The parsed Date object.
-     * @throws ParseException If the input string cannot be parsed.
-     * @throws IllegalArgumentException If the input type is unsupported.
-     */
-    private static Date parseExpirationDate(Object input) throws ParseException {
-        return MCEngineArtificialIntelligenceApiUtilToken.parseExpirationDate(input);
-    }
-
-    /**
-     * Validates a token against the plugin name, secret key, and current date.
-     *
-     * @param pluginName The plugin name.
-     * @param secretKey The secret key used for validation.
-     * @param token The token string to validate.
-     * @param nowDateInput The current date or date string.
-     * @return True if the token is valid and not expired; false otherwise.
-     */
-    public static boolean validateToken(String pluginName, String secretKey, String token, Object nowDateInput) {
-        return MCEngineArtificialIntelligenceApiUtilToken.validateToken(pluginName, secretKey, token, nowDateInput);
-    }
-
-    /**
-     * Extracts the expiration date from a token.
-     *
-     * @param pluginName The plugin name.
-     * @param secretKey The secret key used for validation.
-     * @param token The token string.
-     * @return The extracted expiration date, or a date representing epoch time (0) if invalid.
-     */
-    public static Date extractExpirationDate(String pluginName, String secretKey, String token) {
-        return MCEngineArtificialIntelligenceApiUtilToken.extractExpirationDate(pluginName, secretKey, token);
-    }
-
-    /**
      * Sets a player-specific token for a given platform.
      *
      * @param playerUuid The player's UUID.
