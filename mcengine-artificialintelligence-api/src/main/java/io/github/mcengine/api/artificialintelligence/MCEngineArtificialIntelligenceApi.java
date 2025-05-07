@@ -22,6 +22,9 @@ public class MCEngineArtificialIntelligenceApi {
      */
     private static MCEngineArtificialIntelligenceApi instance;
 
+    /**
+     * Database handler instance for storing and retrieving player tokens.
+     */
     private final IMCEngineArtificialIntelligenceApiDatabase db;
 
     /**
@@ -163,6 +166,28 @@ public class MCEngineArtificialIntelligenceApi {
      */
     public static Date extractExpirationDate(String pluginName, String secretKey, String token) {
         return MCEngineArtificialIntelligenceApiUtilToken.extractExpirationDate(pluginName, secretKey, token);
+    }
+
+    /**
+     * Sets a player-specific token for a given platform.
+     *
+     * @param playerUuid The player's UUID.
+     * @param platform   The platform name.
+     * @param token      The token to store.
+     */
+    public void setPlayerToken(String playerUuid, String platform, String token) {
+        db.setPlayerToken(playerUuid, platform, token);
+    }
+
+    /**
+     * Retrieves a player-specific token for a given platform.
+     *
+     * @param playerUuid The player's UUID.
+     * @param platform   The platform name.
+     * @return The stored token or null if not found.
+     */
+    public String getPlayerToken(String playerUuid, String platform) {
+        return db.getPlayerToken(playerUuid, platform);
     }
 
     /**
