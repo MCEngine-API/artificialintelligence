@@ -13,6 +13,8 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilToken;
+
 /**
  * DeepSeek implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
  * This class communicates with the DeepSeek API to fetch AI-generated responses based on user prompts.

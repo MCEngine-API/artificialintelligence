@@ -12,6 +12,8 @@ import java.net.HttpURLConnection;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 
+import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilToken;
+
 /**
  * OpenAI API implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
  * Communicates with the OpenAI Chat API using the configured model and token.

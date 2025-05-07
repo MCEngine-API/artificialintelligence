@@ -13,6 +13,8 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilToken;
+
 /**
  * OpenRouter implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
  * This class communicates with the OpenRouter API to fetch AI-generated responses.

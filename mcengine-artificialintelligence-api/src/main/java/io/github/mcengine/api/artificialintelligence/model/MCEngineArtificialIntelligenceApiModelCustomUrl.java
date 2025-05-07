@@ -13,6 +13,8 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
+import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilToken;
+
 /**
  * Custom URL AI implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
  * Communicates with a user-defined API endpoint specified in the plugin configuration.
