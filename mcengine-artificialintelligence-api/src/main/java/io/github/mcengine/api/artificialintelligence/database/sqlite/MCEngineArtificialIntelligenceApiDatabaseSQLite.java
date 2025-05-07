@@ -13,6 +13,8 @@ import java.sql.*;
  */
 public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngineArtificialIntelligenceApiDatabase {
 
+    private final Plugin plugin;
+
     private final String databaseUrl;
 
     /**
@@ -22,6 +24,7 @@ public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngin
      * @param plugin The Bukkit plugin instance.
      */
     public MCEngineArtificialIntelligenceApiDatabaseSQLite(Plugin plugin) {
+        this.plugin = plugin;
         String fileName = plugin.getConfig().getString("database.sqlite.path", "artificialintelligence.db");
         File dbFile = new File(plugin.getDataFolder(), fileName);
         this.databaseUrl = "jdbc:sqlite:" + dbFile.getAbsolutePath();
