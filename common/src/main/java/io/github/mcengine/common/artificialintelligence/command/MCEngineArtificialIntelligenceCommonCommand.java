@@ -41,11 +41,6 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
         String platform = args[0];
         String token = args[3];
 
-        if (!player.hasPermission("mcengine.ai.token.set")) {
-            sender.sendMessage("§cYou do not have permission to set tokens.");
-            return true;
-        }
-
         db.setPlayerToken(playerUuid, platform, token);
         sender.sendMessage("§aSuccessfully set your token for platform: " + platform);
 
