@@ -2,6 +2,7 @@ package io.github.mcengine.spigotmc.artificialintelligence.engine;
 
 import io.github.mcengine.api.artificialintelligence.MCEngineArtificialIntelligenceApi;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilToken;
+import io.github.mcengine.common.artificialintelligence.command.MCEngineArtificialIntelligenceCommonCommand;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -58,6 +59,8 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
 
         MCEngineArtificialIntelligenceApiUtilToken.initialize(this);
         MCEngineArtificialIntelligenceApi api = new MCEngineArtificialIntelligenceApi(this);
+
+        getCommand("ai").setExecutor(new MCEngineArtificialIntelligenceCommonCommand(api));
 
         api.checkUpdate("github", "MCEngine", "artificialintelligence", getConfig().getString("github.token", "null"));
 

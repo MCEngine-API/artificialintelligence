@@ -95,6 +95,19 @@ public class MCEngineArtificialIntelligenceApi {
     }
 
     /**
+     * Gets the associated plugin instance.
+     *
+     * @return The plugin instance.
+     */
+    public Plugin getPlugin() {
+        return plugin;
+    }
+
+    public IMCEngineArtificialIntelligenceApiDatabase getDB() {
+        return db;
+    }
+
+    /**
      * Checks for updates by querying the specified Git platform (GitHub, GitLab, etc.)
      * using the organization, repository, and token provided.
      * This can be used to inform server owners or developers when a new plugin version is available.
@@ -106,15 +119,6 @@ public class MCEngineArtificialIntelligenceApi {
      */
     public void checkUpdate(String gitPlatform, String org, String repository, String token) {
         MCEngineArtificialIntelligenceApiUtilUpdate.checkUpdate(plugin, gitPlatform, org, repository, token);
-    }
-
-    /**
-     * Gets the associated plugin instance.
-     *
-     * @return The plugin instance.
-     */
-    public Plugin getPlugin() {
-        return plugin;
     }
 
     /**

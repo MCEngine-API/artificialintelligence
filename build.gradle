@@ -157,6 +157,7 @@ subprojects {
 
 dependencies {
     implementation project(path: ":mcengine-${project.git_repository_name}-api", configuration: 'shadow')
+    implementation project(path: ":common", configuration: 'shadow')
 
     def platformModules = ['spigotmc']
     platformModules.each { platform ->
