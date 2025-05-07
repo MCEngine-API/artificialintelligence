@@ -6,6 +6,8 @@ plugin:
   token:
 
 database:
+  type: sqlite
+
   sqlite:
     path: artificialintelligence.db
 
