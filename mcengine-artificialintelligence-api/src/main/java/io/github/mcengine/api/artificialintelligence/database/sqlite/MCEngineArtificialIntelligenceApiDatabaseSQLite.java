@@ -27,6 +27,20 @@ public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngin
         this.plugin = plugin;
         String fileName = plugin.getConfig().getString("database.sqlite.path", "artificialintelligence.db");
         File dbFile = new File(plugin.getDataFolder(), fileName);
+
+        // Create the file if it doesn't exist
+        if (!dbFile.exists()) {
+            try {
+                boolean created = dbFile.createNewFile();
+                if (created) {
+                    plugin.getLogger().info("SQLite database file created: " + dbFile.getAbsolutePath());
+                }
+            } catch (Exception e) {
+                plugin.getLogger().warning("Failed to create SQLite database file: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
         this.databaseUrl = "jdbc:sqlite:" + dbFile.getAbsolutePath();
         createTable();
     }

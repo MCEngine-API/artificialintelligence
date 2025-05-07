@@ -27,8 +27,15 @@ public class MCEngineArtificialIntelligenceApiUtilToken {
     public static void initialize(Plugin plugin) {
         secretKey = plugin.getConfig().getString("token.secretKey", "").trim();
 
+        if (secretKey.isEmpty()) {
+            plugin.getLogger().severe("token.secretKey is missing from the config. Disabling plugin...");
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
+            return;
+        }
+    
         if (secretKey.length() != 16) {
-            throw new IllegalArgumentException("token.secretKey must be exactly 16 characters for AES-128 encryption.");
+            plugin.getLogger().severe("token.secretKey must be exactly 16 characters for AES-128 encryption. Disabling plugin...");
+            plugin.getServer().getPluginManager().disablePlugin(plugin);
         }
     }
 
