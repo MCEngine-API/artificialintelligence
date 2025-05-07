@@ -40,18 +40,32 @@ public class MCEngineArtificialIntelligenceApiUtilToken {
     }
 
     /**
-     * Encrypts the given token using AES.
+     * Encrypts the given token using AES encryption in CBC mode with PKCS5 padding.
+     * A random 16-byte Initialization Vector (IV) is generated for each encryption,
+     * ensuring that encrypting the same input multiple times will result in different outputs.
+     * The IV is prepended to the encrypted data before Base64 encoding.
      *
-     * @param token The plain text token.
-     * @return The encrypted token as a Base64 string.
+     * @param token The plain text token to encrypt.
+     * @return The encrypted token as a Base64-encoded string, including the IV.
      */
     public static String encryptToken(String token) {
         try {
             SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "AES");
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
-            byte[] encryptedBytes = cipher.doFinal(token.getBytes(StandardCharsets.UTF_8));
-            return Base64.getEncoder().encodeToString(encryptedBytes);
+    
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            byte[] iv = new byte[16];
+            new java.security.SecureRandom().nextBytes(iv); // generate random IV
+            IvParameterSpec ivSpec = new IvParameterSpec(iv);
+    
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec, ivSpec);
+            byte[] encrypted = cipher.doFinal(token.getBytes(StandardCharsets.UTF_8));
+    
+            // prepend IV to encrypted data
+            byte[] combined = new byte[iv.length + encrypted.length];
+            System.arraycopy(iv, 0, combined, 0, iv.length);
+            System.arraycopy(encrypted, 0, combined, iv.length, encrypted.length);
+    
+            return Base64.getEncoder().encodeToString(combined);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -59,25 +73,29 @@ public class MCEngineArtificialIntelligenceApiUtilToken {
     }
 
     /**
-     * Decrypts the given encrypted token.
+     * Decrypts a Base64-encoded token that was encrypted using AES in CBC mode with PKCS5 padding.
+     * The method expects the IV to be prepended to the encrypted payload.
      *
-     * @param encryptedToken The encrypted token as a Base64 string.
-     * @return The decrypted plain text token.
+     * @param encryptedToken The encrypted token as a Base64-encoded string.
+     * @return The decrypted plain text token, or null if decryption fails.
      */
     public static String decryptToken(String encryptedToken) {
         try {
+            byte[] combined = Base64.getDecoder().decode(encryptedToken);
+            byte[] iv = Arrays.copyOfRange(combined, 0, 16);
+            byte[] encrypted = Arrays.copyOfRange(combined, 16, combined.length);
+    
             SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "AES");
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, keySpec);
-            byte[] decodedBytes = Base64.getDecoder().decode(encryptedToken);
-            byte[] decryptedBytes = cipher.doFinal(decodedBytes);
-            return new String(decryptedBytes, StandardCharsets.UTF_8);
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, keySpec, new IvParameterSpec(iv));
+    
+            byte[] decrypted = cipher.doFinal(encrypted);
+            return new String(decrypted, StandardCharsets.UTF_8);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
-
 
     /* ---------- Used for plugin licensing ---------- */
 
