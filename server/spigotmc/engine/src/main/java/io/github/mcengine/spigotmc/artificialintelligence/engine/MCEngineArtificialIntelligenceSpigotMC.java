@@ -31,8 +31,8 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
             return;
         }
 
-        /* secretKey = getConfig().getString("secretKey", "mcengine");
-        token = getConfig().getString("token", "");
+        /* secretKey = getConfig().getString("plugin.secretKey", "mcengine");
+        token = getConfig().getString("plugin.token", "");
 
         if (token == null || token.isEmpty()) {
             getLogger().warning("No token found in config.yml!");

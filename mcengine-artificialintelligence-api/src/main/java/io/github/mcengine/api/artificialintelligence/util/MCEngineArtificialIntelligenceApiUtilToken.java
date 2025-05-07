@@ -2,15 +2,77 @@ package io.github.mcengine.api.artificialintelligence.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+
+import org.bukkit.plugin.Plugin;
 
 /**
  * Utility class for handling token validation and expiration date parsing for MCEngineArtificialIntelligence.
  */
 public class MCEngineArtificialIntelligenceApiUtilToken {
 
+    private static String secretKey;
+
     private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
+
+    /**
+     * Initializes the token encryption utility by loading the secret key from plugin config.
+     *
+     * @param plugin The Bukkit plugin instance.
+     */
+    public static void initialize(Plugin plugin) {
+        secretKey = plugin.getConfig().getString("token.secretKey", "").trim();
+
+        if (secretKey.length() != 16) {
+            throw new IllegalArgumentException("token.secretKey must be exactly 16 characters for AES-128 encryption.");
+        }
+    }
+
+    /**
+     * Encrypts the given token using AES.
+     *
+     * @param token The plain text token.
+     * @return The encrypted token as a Base64 string.
+     */
+    public static String encryptToken(String token) {
+        try {
+            SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "AES");
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+            byte[] encryptedBytes = cipher.doFinal(token.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(encryptedBytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Decrypts the given encrypted token.
+     *
+     * @param encryptedToken The encrypted token as a Base64 string.
+     * @return The decrypted plain text token.
+     */
+    public static String decryptToken(String encryptedToken) {
+        try {
+            SecretKeySpec keySpec = new SecretKeySpec(secretKey.getBytes(StandardCharsets.UTF_8), "AES");
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+            cipher.init(Cipher.DECRYPT_MODE, keySpec);
+            byte[] decodedBytes = Base64.getDecoder().decode(encryptedToken);
+            byte[] decryptedBytes = cipher.doFinal(decodedBytes);
+            return new String(decryptedBytes, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+    /* ---------- Used for plugin licensing ---------- */
 
     /**
      * Parses an expiration date from a supported input.

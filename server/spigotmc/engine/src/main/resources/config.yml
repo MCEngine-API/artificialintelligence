@@ -1,7 +1,17 @@
 enable: false
 
-secretKey:
+# Used for authentication and plugin licensing (limited time)
+plugin:
+  secretKey:
+  token:
+
+database:
+  sqlite:
+    path: artificialintelligence.db
+
 token:
+  # Used to encrypt player tokens before saving them to the database
+  secretKey:
 
 gtihub:
   token:
