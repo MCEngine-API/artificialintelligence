@@ -71,12 +71,23 @@ public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineAr
             return "Error: Missing or invalid OpenAi token.";
         }
 
+        String actualToken = token;
+
+        // 🔐 Decrypt token only if it's different from the server token
+        if (!token.equals(defaultToken)) {
+            actualToken = MCEngineArtificialIntelligenceApiUtilToken.decryptToken(token);
+            if (actualToken == null || actualToken.isEmpty()) {
+                plugin.getLogger().warning("Unable to decrypt the user token for OpenAi");
+                return "Error: Invalid or corrupt user token.";
+            }
+        }
+
         try {
             URI uri = URI.create("https://api.openai.com/v1/chat/completions");
             HttpURLConnection conn = (HttpURLConnection) uri.toURL().openConnection();
 
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + token);
+            conn.setRequestProperty("Authorization", "Bearer " + actualToken);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 

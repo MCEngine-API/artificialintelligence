@@ -72,13 +72,24 @@ public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngine
             return "Error: Missing or invalid DeepSeek token.";
         }
 
+        String actualToken = token;
+
+        // 🔐 Decrypt token only if it's different from the server token
+        if (!token.equals(defaultToken)) {
+            actualToken = MCEngineArtificialIntelligenceApiUtilToken.decryptToken(token);
+            if (actualToken == null || actualToken.isEmpty()) {
+                plugin.getLogger().warning("Unable to decrypt the user token for DeepSeek");
+                return "Error: Invalid or corrupt user token.";
+            }
+        }
+
         try {
             URI uri = URI.create("https://api.deepseek.com/v1/chat/completions");
             URL url = uri.toURL();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + token);
+            conn.setRequestProperty("Authorization", "Bearer " + actualToken);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);
 

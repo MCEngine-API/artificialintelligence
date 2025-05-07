@@ -92,6 +92,17 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
             return "Error: Missing or invalid CustomUrl token.\n Server: " + serverName;
         }
 
+        String actualToken = token;
+
+        // 🔐 Decrypt token only if it's different from the server token
+        if (!token.equals(defaultToken)) {
+            actualToken = MCEngineArtificialIntelligenceApiUtilToken.decryptToken(token);
+            if (actualToken == null || actualToken.isEmpty()) {
+                plugin.getLogger().warning("Failed to decrypt user token for server: " + serverName);
+                return "Error: Invalid or corrupt user token.";
+            }
+        }
+
         try {
             URI uri = URI.create(endpoint);
             URL url = uri.toURL();
@@ -99,7 +110,7 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
 
             conn.setRequestMethod("POST");
             if (token != null && !token.isEmpty()) {
-                conn.setRequestProperty("Authorization", "Bearer " + token);
+                conn.setRequestProperty("Authorization", "Bearer " + actualToken);
             }
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setDoOutput(true);

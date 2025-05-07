@@ -72,13 +72,24 @@ public class MCEngineArtificialIntelligenceApiModelOpenRouter implements IMCEngi
             return "Error: Missing or invalid OpenRouter token.";
         }
 
+        String actualToken = token;
+
+        // 🔐 Decrypt token only if it's different from the server token
+        if (!token.equals(defaultToken)) {
+            actualToken = MCEngineArtificialIntelligenceApiUtilToken.decryptToken(token);
+            if (actualToken == null || actualToken.isEmpty()) {
+                plugin.getLogger().warning("Unable to decrypt the user token for OpenRouter");
+                return "Error: Invalid or corrupt user token.";
+            }
+        }
+
         try {
             URI uri = URI.create("https://openrouter.ai/api/v1/chat/completions");
             URL url = uri.toURL();
             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
 
             conn.setRequestMethod("POST");
-            conn.setRequestProperty("Authorization", "Bearer " + token);
+            conn.setRequestProperty("Authorization", "Bearer " + actualToken);
             conn.setRequestProperty("Content-Type", "application/json");
             conn.setRequestProperty("HTTP-Referer", "https://github.com/mcengine");
             conn.setRequestProperty("X-Title", "MCEngine AI");
