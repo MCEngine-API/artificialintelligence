@@ -3,9 +3,11 @@ package io.github.mcengine.api.artificialintelligence.util;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import javax.crypto.Cipher;
+import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.bukkit.plugin.Plugin;
