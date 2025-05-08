@@ -48,7 +48,13 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
      * Used for: /ai get model <third>.
      * Includes: "list".
      */
-    private static final List<String> THIRD_GET = Arrays.asList("list");
+    private static final List<String> THIRD_GET_AI_MODEL = Arrays.asList("list");
+
+    /**
+     * Third-level keywords for /ai get platform <third>.
+     * Includes: "list".
+     */
+    private static final List<String> THIRD_GET_PLATFORM = Arrays.asList("list");
 
     /**
      * Supported AI platform identifiers used when setting tokens.
@@ -88,15 +94,20 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
                     completions.addAll(SECOND_SET);
                 } else if ("get".equalsIgnoreCase(args[0])) {
                     completions.addAll(SECOND_GET);
+                    completions.add("platform");
                 }
             }
-
+            
             case 3 -> {
                 if ("set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
                     completions.addAll(PLATFORMS);
                     completions.addAll(getCustomServers());
-                } else if ("get".equalsIgnoreCase(args[0]) && "model".equalsIgnoreCase(args[1])) {
-                    completions.addAll(THIRD_GET);
+                } else if ("get".equalsIgnoreCase(args[0])) {
+                    if ("model".equalsIgnoreCase(args[1])) {
+                        completions.addAll(THIRD_GET_AI_MODEL);
+                    } else if ("platform".equalsIgnoreCase(args[1])) {
+                        completions.addAll(THIRD_GET_PLATFORM);
+                    }
                 }
             }
 

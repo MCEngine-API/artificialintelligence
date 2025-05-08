@@ -14,8 +14,9 @@ import java.util.Map;
  * Command executor for AI-related operations.
  * <p>
  * Supported commands:
- * - /ai set token {platform} <token>: Set the player's API token for the given platform.
- * - /ai get model list: Display a list of all registered AI models by platform.
+ * - /ai set token {platform} <token>
+ * - /ai get model list
+ * - /ai get platform list
  */
 public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecutor {
 
@@ -61,7 +62,11 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
         }
 
         // /ai get model list
-        if (args.length == 3 && "get".equalsIgnoreCase(args[0]) && "model".equalsIgnoreCase(args[1]) && "list".equalsIgnoreCase(args[2])) {
+        if (args.length == 3 &&
+            "get".equalsIgnoreCase(args[0]) &&
+            "model".equalsIgnoreCase(args[1]) &&
+            "list".equalsIgnoreCase(args[2])) {
+
             Map<String, Map<String, ?>> models = MCEngineArtificialIntelligenceApiUtilAi.getAllModels();
             if (models.isEmpty()) {
                 player.sendMessage("§cNo models are currently registered.");
@@ -71,16 +76,49 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
             player.sendMessage("§eRegistered AI Models:");
             for (Map.Entry<String, Map<String, ?>> entry : models.entrySet()) {
                 player.sendMessage("§7Platform: §b" + entry.getKey());
-                for (String modelName : entry.getValue().keySet()) {
-                    player.sendMessage("  §8- " + modelName);
+                if ("customurl".equalsIgnoreCase(entry.getKey())) {
+                    for (String serverAndModel : entry.getValue().keySet()) {
+                        String[] parts = serverAndModel.split(":", 2);
+                        if (parts.length == 2) {
+                            player.sendMessage("  §7- " + parts[0]);
+                            player.sendMessage("    §8- " + parts[1]);
+                        } else {
+                            player.sendMessage("  §8- " + serverAndModel);
+                        }
+                    }
+                } else {
+                    for (String modelName : entry.getValue().keySet()) {
+                        player.sendMessage("  §8- " + modelName);
+                    }
                 }
             }
             return true;
         }
 
+        // /ai get platform list
+        if (args.length == 3 &&
+            "get".equalsIgnoreCase(args[0]) &&
+            "platform".equalsIgnoreCase(args[1]) &&
+            "list".equalsIgnoreCase(args[2])) {
+
+            Map<String, Map<String, ?>> models = MCEngineArtificialIntelligenceApiUtilAi.getAllModels();
+            if (models.isEmpty()) {
+                player.sendMessage("§cNo platforms are currently registered.");
+                return true;
+            }
+
+            player.sendMessage("§eRegistered Platforms:");
+            for (String platform : models.keySet()) {
+                player.sendMessage("§7- §b" + platform);
+            }
+            return true;
+        }
+
+        // Fallback usage
         sender.sendMessage("§cUsage:");
         sender.sendMessage("§7/ai set token {platform} <token>");
         sender.sendMessage("§7/ai get model list");
+        sender.sendMessage("§7/ai get platform list");
         return true;
     }
 }
