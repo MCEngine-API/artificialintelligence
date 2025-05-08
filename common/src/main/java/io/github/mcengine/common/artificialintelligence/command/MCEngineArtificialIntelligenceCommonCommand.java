@@ -194,13 +194,14 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
      * Handles "/ai get addon list" and "/ai get dlc list"
      */
     private boolean handleExtensionList(Player player, String type) {
+        type = type.toLowerCase();
         String folder = type.equalsIgnoreCase("addon") ? "addons" : "dlcs";
         List<String> extensions = MCEngineArtificialIntelligenceApiUtilExtension.getLoadedExtensionFileNames(
                 plugin,
                 folder
         );
 
-        player.sendMessage("§eLoaded " + type.toUpperCase() + "s:");
+        player.sendMessage("§eLoaded " + type + "s:");
         if (extensions.isEmpty()) {
             player.sendMessage("§7- §cNo " + type + "s found.");
         } else {
