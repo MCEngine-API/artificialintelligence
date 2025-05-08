@@ -117,16 +117,11 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
         for (Map.Entry<String, Map<String, ?>> entry : models.entrySet()) {
             String platform = entry.getKey();
 
-            // Create clickable platform name
-            TextComponent platformComponent = new TextComponent("§7- ");
-            TextComponent clickablePlatform = new TextComponent("§b" + platform);
-            clickablePlatform.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
-                    "/ai set token " + platform + " "));
-
-            platformComponent.addExtra(clickablePlatform);
-            player.spigot().sendMessage(platformComponent);
-
             if ("customurl".equalsIgnoreCase(platform)) {
+                // Non-clickable platform name
+                player.sendMessage("§7- §b" + platform);
+
+                // Collect and display clickable servers
                 Set<String> servers = new HashSet<>();
                 for (String key : entry.getValue().keySet()) {
                     String[] parts = key.split(":", 2);
@@ -138,12 +133,26 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
                 for (String server : servers) {
                     TextComponent serverComponent = new TextComponent("   §8- ");
                     TextComponent clickableServer = new TextComponent(server);
-                    clickableServer.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
-                            "/ai set token customurl:" + server + " "));
+                    clickableServer.setClickEvent(new ClickEvent(
+                        ClickEvent.Action.SUGGEST_COMMAND,
+                        "/ai set token customurl:" + server + " "
+                    ));
 
                     serverComponent.addExtra(clickableServer);
                     player.spigot().sendMessage(serverComponent);
                 }
+
+            } else {
+                // Normal clickable platform
+                TextComponent platformComponent = new TextComponent("§7- ");
+                TextComponent clickablePlatform = new TextComponent("§b" + platform);
+                clickablePlatform.setClickEvent(new ClickEvent(
+                    ClickEvent.Action.SUGGEST_COMMAND,
+                    "/ai set token " + platform + " "
+                ));
+
+                platformComponent.addExtra(clickablePlatform);
+                player.spigot().sendMessage(platformComponent);
             }
         }
         return true;
