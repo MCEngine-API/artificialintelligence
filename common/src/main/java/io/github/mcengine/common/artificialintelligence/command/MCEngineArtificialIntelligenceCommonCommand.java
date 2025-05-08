@@ -3,6 +3,7 @@ package io.github.mcengine.common.artificialintelligence.command;
 import io.github.mcengine.api.artificialintelligence.MCEngineArtificialIntelligenceApi;
 import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilAi;
+import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilExtension;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -10,6 +11,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,8 +23,12 @@ import java.util.stream.Collectors;
  * - /ai set token {platform} <token>
  * - /ai get model list
  * - /ai get platform list
+ * - /ai get addon list
+ * - /ai get dlc list
  */
 public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecutor {
+
+    private final Plugin plugin;
 
     /**
      * Database instance used to persist and retrieve player tokens.
@@ -35,6 +41,7 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
      * @param api The MCEngineArtificialIntelligenceApi instance.
      */
     public MCEngineArtificialIntelligenceCommonCommand(MCEngineArtificialIntelligenceApi api) {
+        this.plugin = api.getPlugin();
         this.db = api.getDB();
     }
 
@@ -62,12 +69,18 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
             return true;
         }
 
-        if (args.length == 3 && args[0].equalsIgnoreCase("get") && args[1].equalsIgnoreCase("model") && args[2].equalsIgnoreCase("list")) {
-            return handleModelList(player);
-        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("get")) {
+            if (args[1].equalsIgnoreCase("model") && args[2].equalsIgnoreCase("list")) {
+                return handleModelList(player);
+            }
 
-        if (args.length == 3 && args[0].equalsIgnoreCase("get") && args[1].equalsIgnoreCase("platform") && args[2].equalsIgnoreCase("list")) {
-            return handlePlatformList(player);
+            if (args[1].equalsIgnoreCase("platform") && args[2].equalsIgnoreCase("list")) {
+                return handlePlatformList(player);
+            }
+
+            if ((args[1].equalsIgnoreCase("addon") || args[1].equalsIgnoreCase("dlc")) && args[2].equalsIgnoreCase("list")) {
+                return handleExtensionList(player, args[1]);
+            }
         }
 
         sendUsage(sender);
@@ -178,6 +191,27 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
     }
 
     /**
+     * Handles "/ai get addon list" and "/ai get dlc list"
+     */
+    private boolean handleExtensionList(Player player, String type) {
+        String folder = type.equalsIgnoreCase("addon") ? "addons" : "dlcs";
+        List<String> extensions = MCEngineArtificialIntelligenceApiUtilExtension.getLoadedExtensionFileNames(
+                plugin,
+                folder
+        );
+
+        player.sendMessage("§eLoaded " + type.toUpperCase() + "s:");
+        if (extensions.isEmpty()) {
+            player.sendMessage("§7- §cNo " + type + "s found.");
+        } else {
+            extensions.stream()
+                    .sorted()
+                    .forEach(name -> player.sendMessage("§7- §a" + name));
+        }
+        return true;
+    }
+
+    /**
      * Sends usage help to the player or console.
      *
      * @param sender The command sender (player or console).
@@ -187,6 +221,8 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
         sender.sendMessage("§7/ai set token {platform} <token>");
         sender.sendMessage("§7/ai get model list");
         sender.sendMessage("§7/ai get platform list");
+        sender.sendMessage("§7/ai get addon list");
+        sender.sendMessage("§7/ai get dlc list");
     }
 
     /**

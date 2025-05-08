@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.Enumeration;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.logging.Logger;
@@ -16,6 +16,9 @@ import java.util.logging.Logger;
  * Utility class for loading AI AddOns or DLCs from JAR files.
  */
 public class MCEngineArtificialIntelligenceApiUtilExtension {
+
+    // Keeps track of loaded AddOn/DLC filenames per folder name
+    private static final Map<String, List<String>> loadedExtensions = new HashMap<>();
 
     /**
      * Loads extensions (AddOns or DLCs) from the specified folder.
@@ -40,7 +43,11 @@ public class MCEngineArtificialIntelligenceApiUtilExtension {
             return;
         }
 
+        List<String> successfullyLoaded = new ArrayList<>();
+
         for (File file : files) {
+            boolean loaded = false;
+
             try (
                 URLClassLoader classLoader = new URLClassLoader(
                     new URL[]{file.toURI().toURL()},
@@ -54,18 +61,14 @@ public class MCEngineArtificialIntelligenceApiUtilExtension {
                     JarEntry entry = entries.nextElement();
                     String name = entry.getName();
 
-                    if (!name.endsWith(".class") || name.contains("$")) {
-                        continue;
-                    }
+                    if (!name.endsWith(".class") || name.contains("$")) continue;
 
                     String className = name.replace("/", ".").replace(".class", "");
 
                     try {
                         Class<?> clazz = classLoader.loadClass(className);
 
-                        if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
-                            continue;
-                        }
+                        if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) continue;
 
                         Method onLoadMethod;
                         try {
@@ -78,16 +81,35 @@ public class MCEngineArtificialIntelligenceApiUtilExtension {
                         onLoadMethod.invoke(extensionInstance, plugin);
 
                         logger.info("[" + type + "] Loaded: " + className);
-
+                        loaded = true;
+                        break; // stop after first valid class loaded
                     } catch (Throwable e) {
                         logger.warning("[" + type + "] Failed to load class: " + className);
                         e.printStackTrace();
                     }
                 }
+
+                if (loaded) {
+                    successfullyLoaded.add(file.getName());
+                }
+
             } catch (Exception e) {
                 logger.warning("[" + type + "] Error loading " + type + " JAR: " + file.getName());
                 e.printStackTrace();
             }
         }
+
+        loadedExtensions.put(folderName, successfullyLoaded);
+    }
+
+    /**
+     * Returns a list of successfully loaded extension JAR filenames from the specified folder.
+     *
+     * @param plugin     The plugin instance.
+     * @param folderName The folder name ("addons" or "dlcs").
+     * @return List of loaded .jar filenames from the given folder.
+     */
+    public static List<String> getLoadedExtensionFileNames(Plugin plugin, String folderName) {
+        return loadedExtensions.getOrDefault(folderName, Collections.emptyList());
     }
 }

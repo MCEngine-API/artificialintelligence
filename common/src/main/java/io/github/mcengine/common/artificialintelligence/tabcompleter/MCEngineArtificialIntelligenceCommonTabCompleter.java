@@ -15,6 +15,9 @@ import java.util.List;
  * Supports auto-completion for:
  * - /ai set token {platform} <token>
  * - /ai get model list
+ * - /ai get platform list
+ * - /ai get addon list
+ * - /ai get dlc list
  */
 public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabCompleter {
 
@@ -39,26 +42,32 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
     /**
      * Second-level keywords after "get".
      * Used for: /ai get <second>.
-     * Includes: "model".
+     * Includes: "model", "platform", "addon", "dlc".
      */
-    private static final List<String> SECOND_GET = Arrays.asList("model");
+    private static final List<String> SECOND_GET = Arrays.asList("model", "platform", "addon", "dlc");
 
     /**
      * Third-level keywords for listing models.
      * Used for: /ai get model <third>.
      * Includes: "list".
      */
-    private static final List<String> THIRD_GET_AI_MODEL = Arrays.asList("list");
+    private static final List<String> THIRD_GET_MODEL = Arrays.asList("list");
 
     /**
-     * Third-level keywords for /ai get platform <third>.
+     * Third-level keywords for listing platforms.
+     * Used for: /ai get platform <third>.
      * Includes: "list".
      */
     private static final List<String> THIRD_GET_PLATFORM = Arrays.asList("list");
 
     /**
+     * Third-level keywords for listing addons or dlcs.
+     * Includes: "list".
+     */
+    private static final List<String> THIRD_GET_EXTENSION = Arrays.asList("list");
+
+    /**
      * Supported AI platform identifiers used when setting tokens.
-     * Includes: "openai", "deepseek", and "openrouter".
      */
     private static final List<String> PLATFORMS = Arrays.asList("openai", "deepseek", "openrouter");
 
@@ -94,19 +103,18 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
                     completions.addAll(SECOND_SET);
                 } else if ("get".equalsIgnoreCase(args[0])) {
                     completions.addAll(SECOND_GET);
-                    completions.add("platform");
                 }
             }
-            
+
             case 3 -> {
                 if ("set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
                     completions.addAll(PLATFORMS);
                     completions.addAll(getCustomServers());
                 } else if ("get".equalsIgnoreCase(args[0])) {
-                    if ("model".equalsIgnoreCase(args[1])) {
-                        completions.addAll(THIRD_GET_AI_MODEL);
-                    } else if ("platform".equalsIgnoreCase(args[1])) {
-                        completions.addAll(THIRD_GET_PLATFORM);
+                    switch (args[1].toLowerCase()) {
+                        case "model" -> completions.addAll(THIRD_GET_MODEL);
+                        case "platform" -> completions.addAll(THIRD_GET_PLATFORM);
+                        case "addon", "dlc" -> completions.addAll(THIRD_GET_EXTENSION);
                     }
                 }
             }
