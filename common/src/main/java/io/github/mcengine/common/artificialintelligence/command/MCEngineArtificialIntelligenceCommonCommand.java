@@ -8,6 +8,10 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.TextComponent;
+
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -112,10 +116,17 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
         player.sendMessage("§eRegistered Platforms:");
         for (Map.Entry<String, Map<String, ?>> entry : models.entrySet()) {
             String platform = entry.getKey();
-            player.sendMessage("§7- §b" + platform);
+
+            // Create clickable platform name
+            TextComponent platformComponent = new TextComponent("§7- ");
+            TextComponent clickablePlatform = new TextComponent("§b" + platform);
+            clickablePlatform.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
+                    "/ai set token " + platform + " "));
+
+            platformComponent.addExtra(clickablePlatform);
+            player.spigot().sendMessage(platformComponent);
 
             if ("customurl".equalsIgnoreCase(platform)) {
-                // Use a set to avoid duplicate server names
                 Set<String> servers = new HashSet<>();
                 for (String key : entry.getValue().keySet()) {
                     String[] parts = key.split(":", 2);
@@ -123,8 +134,15 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
                         servers.add(parts[0]);
                     }
                 }
+
                 for (String server : servers) {
-                    player.sendMessage("  §8- " + server);
+                    TextComponent serverComponent = new TextComponent("   §8- ");
+                    TextComponent clickableServer = new TextComponent(server);
+                    clickableServer.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND,
+                            "/ai set token customurl:" + server + " "));
+
+                    serverComponent.addExtra(clickableServer);
+                    player.spigot().sendMessage(serverComponent);
                 }
             }
         }
