@@ -14,9 +14,9 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
 
     private final Plugin plugin;
 
-    private static final List<String> STATIC_PLATFORMS = Arrays.asList("openai", "deepseek", "openrouter");
-    private static final List<String> TOKEN = Arrays.asList("token");
-    private static final List<String> SUBCOMMAND = Arrays.asList("set");
+    private static final List<String> FIRST = Arrays.asList("set");
+    private static final List<String> SECOND = Arrays.asList("token");
+    private static final List<String> PLATFORMS = Arrays.asList("openai", "deepseek", "openrouter");
 
     public MCEngineArtificialIntelligenceCommonTabCompleter(Plugin plugin) {
         this.plugin = plugin;
@@ -29,13 +29,23 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
         List<String> completions = new ArrayList<>();
 
         switch (args.length) {
-            case 1 -> {
-                completions.addAll(STATIC_PLATFORMS);
-                completions.addAll(getCustomServers());
+            case 1 -> completions.addAll(FIRST);
+            case 2 -> {
+                if ("set".equalsIgnoreCase(args[0])) {
+                    completions.addAll(SECOND);
+                }
             }
-            case 2 -> completions.addAll(TOKEN);
-            case 3 -> completions.addAll(SUBCOMMAND);
-            case 4 -> completions.add("<your_token>");
+            case 3 -> {
+                if ("set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
+                    completions.addAll(PLATFORMS);
+                    completions.addAll(getCustomServers());
+                }
+            }
+            case 4 -> {
+                if ("set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
+                    completions.add("<your_token>");
+                }
+            }
         }
 
         return completions;

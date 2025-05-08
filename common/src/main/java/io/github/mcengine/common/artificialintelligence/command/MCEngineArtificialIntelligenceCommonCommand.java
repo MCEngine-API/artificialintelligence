@@ -8,7 +8,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 /**
- * Command executor for managing AI tokens using the format "/ai {platform} token set {token}".
+ * Command executor for managing AI tokens using the format "/ai set token {platform} <token>".
  */
 public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecutor {
 
@@ -25,9 +25,9 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        // Usage: /ai {platform} token set {token}
-        if (args.length != 4 || !"token".equalsIgnoreCase(args[1]) || !"set".equalsIgnoreCase(args[2])) {
-            sender.sendMessage("§cUsage: /ai {platform} token set {token}");
+        // Usage: /ai set token {platform} <token>
+        if (args.length != 4 || !"set".equalsIgnoreCase(args[0]) || !"token".equalsIgnoreCase(args[1])) {
+            sender.sendMessage("§cUsage: /ai set token {platform} <token>");
             return true;
         }
 
@@ -38,7 +38,7 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
 
         Player player = (Player) sender;
         String playerUuid = player.getUniqueId().toString();
-        String platform = args[0];
+        String platform = args[2];
         String token = args[3];
 
         db.setPlayerToken(playerUuid, platform, token);
