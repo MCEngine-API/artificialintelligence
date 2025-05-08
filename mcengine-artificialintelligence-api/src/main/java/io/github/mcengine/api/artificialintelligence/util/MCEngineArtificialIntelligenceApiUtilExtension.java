@@ -47,6 +47,7 @@ public class MCEngineArtificialIntelligenceApiUtilExtension {
 
         for (File file : files) {
             boolean loaded = false;
+            logger.info("[" + type + "] Scanning JAR: " + file.getName());
 
             try (
                 URLClassLoader classLoader = new URLClassLoader(
@@ -61,19 +62,32 @@ public class MCEngineArtificialIntelligenceApiUtilExtension {
                     JarEntry entry = entries.nextElement();
                     String name = entry.getName();
 
-                    if (!name.endsWith(".class") || name.contains("$")) continue;
+                    if (!name.endsWith(".class") || name.contains("$")) {
+                        logger.fine("[" + type + "] Skipped: " + name + " (not a class or inner class)");
+                        continue;
+                    }
 
                     String className = name.replace("/", ".").replace(".class", "");
+                    logger.fine("[" + type + "] Inspecting: " + className);
 
                     try {
                         Class<?> clazz = classLoader.loadClass(className);
 
-                        if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) continue;
+                        if (clazz.isInterface()) {
+                            logger.fine("[" + type + "] Skipped interface: " + className);
+                            continue;
+                        }
+
+                        if (Modifier.isAbstract(clazz.getModifiers())) {
+                            logger.fine("[" + type + "] Skipped abstract: " + className);
+                            continue;
+                        }
 
                         Method onLoadMethod;
                         try {
                             onLoadMethod = clazz.getMethod("onLoad", Plugin.class);
                         } catch (NoSuchMethodException e) {
+                            logger.fine("[" + type + "] No onLoad(Plugin) found in: " + className);
                             continue;
                         }
 
@@ -89,7 +103,9 @@ public class MCEngineArtificialIntelligenceApiUtilExtension {
                     }
                 }
 
-                if (loaded) {
+                if (!loaded) {
+                    logger.warning("[" + type + "] No valid onLoad(Plugin) class found in: " + file.getName());
+                } else {
                     successfullyLoaded.add(file.getName());
                 }
 
