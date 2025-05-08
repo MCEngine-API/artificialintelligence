@@ -15,6 +15,9 @@ import net.md_5.bungee.api.chat.TextComponent;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Command executor for AI-related operations.
@@ -126,18 +129,23 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
                 for (String key : entry.getValue().keySet()) {
                     String[] parts = key.split(":", 2);
                     if (parts.length >= 1) {
-                        servers.add(parts[0]);
+                        String server = parts[0];
+                        if (server.matches("[0-9a-z]+")) {
+                            servers.add(server);
+                        }
                     }
                 }
 
-                for (String server : servers) {
+                List<String> sortedServers = new ArrayList<>(servers);
+                Collections.sort(sortedServers);
+
+                for (String server : sortedServers) {
                     TextComponent serverComponent = new TextComponent("   §8- ");
                     TextComponent clickableServer = new TextComponent(server);
                     clickableServer.setClickEvent(new ClickEvent(
                         ClickEvent.Action.SUGGEST_COMMAND,
                         "/ai set token customurl:" + server + " "
                     ));
-
                     serverComponent.addExtra(clickableServer);
                     player.spigot().sendMessage(serverComponent);
                 }
