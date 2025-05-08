@@ -1,6 +1,7 @@
 package io.github.mcengine.api.artificialintelligence;
 
 import org.bukkit.plugin.Plugin;
+import org.bukkit.configuration.ConfigurationSection;
 
 import java.text.ParseException;
 import java.util.Date;
@@ -66,9 +67,11 @@ public class MCEngineArtificialIntelligenceApi {
         for (String platform : platforms) {
             String modelsKey = "ai." + platform + ".models";
             if (plugin.getConfig().isConfigurationSection(modelsKey)) {
-                for (String model : plugin.getConfig().getConfigurationSection(modelsKey).getKeys(false)) {
-                    if (model != null && !model.equalsIgnoreCase("null")) {
-                        registerModel(platform, model);
+                ConfigurationSection section = plugin.getConfig().getConfigurationSection(modelsKey);
+                for (String key : section.getKeys(false)) {
+                    String modelName = section.getString(key);
+                    if (modelName != null && !modelName.equalsIgnoreCase("null")) {
+                        registerModel(platform, modelName);
                     }
                 }
             }
@@ -79,9 +82,11 @@ public class MCEngineArtificialIntelligenceApi {
             for (String server : plugin.getConfig().getConfigurationSection("ai.custom").getKeys(false)) {
                 String modelsKey = "ai.custom." + server + ".models";
                 if (plugin.getConfig().isConfigurationSection(modelsKey)) {
-                    for (String model : plugin.getConfig().getConfigurationSection(modelsKey).getKeys(false)) {
-                        if (model != null && !model.equalsIgnoreCase("null")) {
-                            registerModel("customurl", server + ":" + model);
+                    ConfigurationSection section = plugin.getConfig().getConfigurationSection(modelsKey);
+                    for (String key : section.getKeys(false)) {
+                        String modelName = section.getString(key);
+                        if (modelName != null && !modelName.equalsIgnoreCase("null")) {
+                            registerModel("customurl", server + ":" + modelName);
                         }
                     }
                 }
