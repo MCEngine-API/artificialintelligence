@@ -139,7 +139,7 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
                 for (Map.Entry<String, List<String>> entry : serverModels.entrySet()) {
                     player.sendMessage("  §7- " + entry.getKey());
                     for (String model : entry.getValue().stream().sorted().toList()) {
-                        player.sendMessage("    §8- " + model);
+                        player.sendMessage("    §7- §f" + model);
                     }
                 }
     
@@ -147,7 +147,7 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
                 modelMap.keySet().stream()
                         .filter(this::isValidKey)
                         .sorted()
-                        .forEach(modelName -> player.sendMessage("  §8- " + modelName));
+                        .forEach(modelName -> player.sendMessage("  §7- §f" + modelName));
             }
         }
         return true;
@@ -182,14 +182,14 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
             for (Map.Entry<String, List<String>> entry : serverModels.entrySet()) {
                 player.sendMessage("  §7- " + entry.getKey());
                 for (String model : entry.getValue().stream().sorted().toList()) {
-                    player.sendMessage("    §8- " + model);
+                    player.sendMessage("    §7- §f" + model);
                 }
             }
         } else {
             modelMap.keySet().stream()
                 .filter(this::isValidKey)
                 .sorted()
-                .forEach(modelName -> player.sendMessage("  §8- " + modelName));
+                .forEach(modelName -> player.sendMessage("  §7- §f" + modelName));
         }
         return true;
     }
@@ -223,7 +223,7 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
                         .collect(Collectors.toList());
 
                 for (String server : servers) {
-                    TextComponent serverComponent = new TextComponent("   §8- ");
+                    TextComponent serverComponent = new TextComponent("   §7- §f");
                     TextComponent clickableServer = new TextComponent(server);
                     clickableServer.setClickEvent(new ClickEvent(
                             ClickEvent.Action.SUGGEST_COMMAND,
