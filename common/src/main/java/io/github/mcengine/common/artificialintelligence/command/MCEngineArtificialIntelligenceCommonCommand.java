@@ -89,23 +89,35 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
             player.sendMessage("§cNo models are currently registered.");
             return true;
         }
-
+    
         player.sendMessage("§eRegistered AI Models:");
+    
         for (String platform : getSortedPlatformKeys(models)) {
             Map<String, ?> modelMap = models.get(platform);
             player.sendMessage("§7Platform: §b" + platform);
-
+    
             if (platform.equalsIgnoreCase("customurl")) {
-                modelMap.keySet().stream()
-                        .map(key -> key.split(":", 2))
-                        .filter(parts -> parts.length == 2 && isValidKey(parts[0]))
-                        .forEach(parts -> {
-                            player.sendMessage("  §7- " + parts[0]);
-                            player.sendMessage("    §8- " + parts[1]);
-                        });
+                // Group models by server
+                Map<String, List<String>> serverModels = new TreeMap<>();
+    
+                for (String key : modelMap.keySet()) {
+                    String[] parts = key.split(":", 2);
+                    if (parts.length == 2 && isValidKey(parts[0]) && isValidKey(parts[1])) {
+                        serverModels.computeIfAbsent(parts[0], k -> new ArrayList<>()).add(parts[1]);
+                    }
+                }
+    
+                for (Map.Entry<String, List<String>> entry : serverModels.entrySet()) {
+                    player.sendMessage("  §7- " + entry.getKey());
+                    for (String model : entry.getValue().stream().sorted().toList()) {
+                        player.sendMessage("    §8- " + model);
+                    }
+                }
+    
             } else {
                 modelMap.keySet().stream()
                         .filter(this::isValidKey)
+                        .sorted()
                         .forEach(modelName -> player.sendMessage("  §8- " + modelName));
             }
         }
