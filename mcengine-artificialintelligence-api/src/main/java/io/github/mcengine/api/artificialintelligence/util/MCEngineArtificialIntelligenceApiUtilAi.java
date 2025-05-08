@@ -84,4 +84,15 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
             return platformMap.get(model);
         }
     }
+
+    /**
+     * Returns a shallow copy of the current model cache containing all registered models.
+     *
+     * @return A map of platform names to their associated model instances.
+     */
+    public static Map<String, Map<String, ?>> getAllModels() {
+        synchronized (modelCache) {
+            return new HashMap<>(modelCache);
+        }
+    }
 }
