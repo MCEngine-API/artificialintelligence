@@ -43,9 +43,9 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
     /**
      * Second-level keywords after "get".
      * Used for: /ai get <second>.
-     * Includes: "model", "platform", "addon", "dlc".
+     * Includes: "platform", "addon", "dlc".
      */
-    private static final List<String> SECOND_GET = Arrays.asList("model", "platform", "addon", "dlc");
+    private static final List<String> SECOND_GET = Arrays.asList("platform", "addon", "dlc");
 
     /**
      * Third-level keywords for listing models.
@@ -99,8 +99,7 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
                         completions.add("list");
                         completions.add("model");
                         completions.addAll(getAllValidPlatforms());
-                    } else if ("model".equalsIgnoreCase(args[1]) ||
-                            "addon".equalsIgnoreCase(args[1]) ||
+                    } else if ("addon".equalsIgnoreCase(args[1]) ||
                             "dlc".equalsIgnoreCase(args[1])) {
                         completions.add("list");
                     }
