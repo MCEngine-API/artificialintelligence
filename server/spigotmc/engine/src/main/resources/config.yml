@@ -30,7 +30,8 @@ ai:
       # Authorization token for server1
       token:
       # Default model name for server1
-      model: model1
+      models:
+        model1: model1
 
     server2:
       # API endpoint URL for server2
@@ -38,19 +39,24 @@ ai:
       # Authorization token for server2
       token:
       # Default model name for server2
-      model: model2
+      models:
+        model1: model1
+        model2: model2
 
   deepseek:
     token:
     # Default model loaded when the plugin starts
-    model:
+    models:
+      model1:
 
   openai:
     token:
     # Default model loaded when the plugin starts
-    model:
+    models:
+      model1:
 
   openrouter:
     token:
     # Default model loaded when the plugin starts
-    model:
+    models:
+      model1:

@@ -61,25 +61,29 @@ public class MCEngineArtificialIntelligenceApi {
                 throw new IllegalArgumentException("Unsupported database type: " + dbType);
         }
 
-        // Load Default AI models
+        // Load models for deepseek, openai, openrouter (multiple model config)
         String[] platforms = { "deepseek", "openai", "openrouter" };
-
-        // Load models for deepseek, openai, openrouter (single model config)
         for (String platform : platforms) {
-            String configKey = "ai." + platform + ".model";
-            String model = plugin.getConfig().getString(configKey);
-            if (model != null && !model.equalsIgnoreCase("null")) {
-                registerModel(platform, model);
+            String modelsKey = "ai." + platform + ".models";
+            if (plugin.getConfig().isConfigurationSection(modelsKey)) {
+                for (String model : plugin.getConfig().getConfigurationSection(modelsKey).getKeys(false)) {
+                    if (model != null && !model.equalsIgnoreCase("null")) {
+                        registerModel(platform, model);
+                    }
+                }
             }
         }
 
-        // Load models for customurl (multiple servers)
+        // Load models for customurl (multiple servers and models)
         if (plugin.getConfig().isConfigurationSection("ai.custom")) {
             for (String server : plugin.getConfig().getConfigurationSection("ai.custom").getKeys(false)) {
-                String configKey = "ai.custom." + server + ".model";
-                String model = plugin.getConfig().getString(configKey);
-                if (model != null && !model.equalsIgnoreCase("null")) {
-                    registerModel("customurl", server + ":" + model);
+                String modelsKey = "ai.custom." + server + ".models";
+                if (plugin.getConfig().isConfigurationSection(modelsKey)) {
+                    for (String model : plugin.getConfig().getConfigurationSection(modelsKey).getKeys(false)) {
+                        if (model != null && !model.equalsIgnoreCase("null")) {
+                            registerModel("customurl", server + ":" + model);
+                        }
+                    }
                 }
             }
         }
