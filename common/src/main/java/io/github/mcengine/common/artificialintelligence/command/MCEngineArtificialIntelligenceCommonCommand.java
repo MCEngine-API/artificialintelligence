@@ -3,21 +3,16 @@ package io.github.mcengine.common.artificialintelligence.command;
 import io.github.mcengine.api.artificialintelligence.MCEngineArtificialIntelligenceApi;
 import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilAi;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.TextComponent;
-
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Command executor for AI-related operations.
@@ -54,15 +49,12 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
      */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage("§cOnly players can execute this command.");
             return true;
         }
 
-        Player player = (Player) sender;
-
-        // /ai set token {platform} <token>
-        if (args.length == 4 && "set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
+        if (args.length == 4 && args[0].equalsIgnoreCase("set") && args[1].equalsIgnoreCase("token")) {
             String platform = args[2];
             String token = args[3];
             db.setPlayerToken(player.getUniqueId().toString(), platform, token);
@@ -70,46 +62,65 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
             return true;
         }
 
-        // /ai get model list
-        if (args.length == 3 &&
-            "get".equalsIgnoreCase(args[0]) &&
-            "model".equalsIgnoreCase(args[1]) &&
-            "list".equalsIgnoreCase(args[2])) {
+        if (args.length == 3 && args[0].equalsIgnoreCase("get") && args[1].equalsIgnoreCase("model") && args[2].equalsIgnoreCase("list")) {
+            return handleModelList(player);
+        }
 
-            Map<String, Map<String, ?>> models = MCEngineArtificialIntelligenceApiUtilAi.getAllModels();
-            if (models.isEmpty()) {
-                player.sendMessage("§cNo models are currently registered.");
-                return true;
-            }
+        if (args.length == 3 && args[0].equalsIgnoreCase("get") && args[1].equalsIgnoreCase("platform") && args[2].equalsIgnoreCase("list")) {
+            return handlePlatformList(player);
+        }
 
-            player.sendMessage("§eRegistered AI Models:");
-            for (Map.Entry<String, Map<String, ?>> entry : models.entrySet()) {
-                player.sendMessage("§7Platform: §b" + entry.getKey());
-                if ("customurl".equalsIgnoreCase(entry.getKey())) {
-                    for (String serverAndModel : entry.getValue().keySet()) {
-                        String[] parts = serverAndModel.split(":", 2);
-                        if (parts.length == 2) {
-                            player.sendMessage("  §7- " + parts[0]);
-                            player.sendMessage("    §8- " + parts[1]);
-                        } else {
-                            player.sendMessage("  §8- " + serverAndModel);
-                        }
-                    }
-                } else {
-                    for (String modelName : entry.getValue().keySet()) {
-                        player.sendMessage("  §8- " + modelName);
-                    }
-                }
-            }
+        sendUsage(sender);
+        return true;
+    }
+
+    /**
+     * Handles the "/ai get model list" command.
+     * Displays all registered AI models by platform.
+     * Platforms and model names are filtered using the regex [0-9a-z]+.
+     * Special handling ensures "customurl" is shown last and its servers are grouped.
+     *
+     * @param player The player executing the command.
+     * @return true if the command executes successfully.
+     */
+    private boolean handleModelList(Player player) {
+        Map<String, Map<String, ?>> models = MCEngineArtificialIntelligenceApiUtilAi.getAllModels();
+        if (models.isEmpty()) {
+            player.sendMessage("§cNo models are currently registered.");
             return true;
         }
 
-        // /ai get platform list
-        if (args.length == 3 &&
-        "get".equalsIgnoreCase(args[0]) &&
-        "platform".equalsIgnoreCase(args[1]) &&
-        "list".equalsIgnoreCase(args[2])) {
+        player.sendMessage("§eRegistered AI Models:");
+        for (String platform : getSortedPlatformKeys(models)) {
+            Map<String, ?> modelMap = models.get(platform);
+            player.sendMessage("§7Platform: §b" + platform);
 
+            if (platform.equalsIgnoreCase("customurl")) {
+                modelMap.keySet().stream()
+                        .map(key -> key.split(":", 2))
+                        .filter(parts -> parts.length == 2 && isValidKey(parts[0]))
+                        .forEach(parts -> {
+                            player.sendMessage("  §7- " + parts[0]);
+                            player.sendMessage("    §8- " + parts[1]);
+                        });
+            } else {
+                modelMap.keySet().stream()
+                        .filter(this::isValidKey)
+                        .forEach(modelName -> player.sendMessage("  §8- " + modelName));
+            }
+        }
+        return true;
+    }
+
+    /**
+     * Handles the "/ai get platform list" command.
+     * Displays all available platforms, marking them clickable for quick token setup.
+     * The "customurl" platform is shown last with its valid server list.
+     *
+     * @param player The player executing the command.
+     * @return true if the command executes successfully.
+     */
+    private boolean handlePlatformList(Player player) {
         Map<String, Map<String, ?>> models = MCEngineArtificialIntelligenceApiUtilAi.getAllModels();
         if (models.isEmpty()) {
             player.sendMessage("§cNo platforms are currently registered.");
@@ -117,60 +128,83 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
         }
 
         player.sendMessage("§eRegistered Platforms:");
-        for (Map.Entry<String, Map<String, ?>> entry : models.entrySet()) {
-            String platform = entry.getKey();
-
-            if ("customurl".equalsIgnoreCase(platform)) {
-                // Non-clickable platform name
+        for (String platform : getSortedPlatformKeys(models)) {
+            Map<String, ?> entry = models.get(platform);
+            if (platform.equalsIgnoreCase("customurl")) {
                 player.sendMessage("§7- §b" + platform);
 
-                // Collect and display clickable servers
-                Set<String> servers = new HashSet<>();
-                for (String key : entry.getValue().keySet()) {
-                    String[] parts = key.split(":", 2);
-                    if (parts.length >= 1) {
-                        String server = parts[0];
-                        if (server.matches("[0-9a-z]+")) {
-                            servers.add(server);
-                        }
-                    }
-                }
+                List<String> servers = entry.keySet().stream()
+                        .map(key -> key.split(":", 2)[0])
+                        .filter(this::isValidKey)
+                        .distinct()
+                        .sorted()
+                        .collect(Collectors.toList());
 
-                List<String> sortedServers = new ArrayList<>(servers);
-                Collections.sort(sortedServers);
-
-                for (String server : sortedServers) {
+                for (String server : servers) {
                     TextComponent serverComponent = new TextComponent("   §8- ");
                     TextComponent clickableServer = new TextComponent(server);
                     clickableServer.setClickEvent(new ClickEvent(
-                        ClickEvent.Action.SUGGEST_COMMAND,
-                        "/ai set token customurl:" + server + " "
+                            ClickEvent.Action.SUGGEST_COMMAND,
+                            "/ai set token customurl:" + server + " "
                     ));
                     serverComponent.addExtra(clickableServer);
                     player.spigot().sendMessage(serverComponent);
                 }
 
             } else {
-                // Normal clickable platform
                 TextComponent platformComponent = new TextComponent("§7- ");
                 TextComponent clickablePlatform = new TextComponent("§b" + platform);
                 clickablePlatform.setClickEvent(new ClickEvent(
-                    ClickEvent.Action.SUGGEST_COMMAND,
-                    "/ai set token " + platform + " "
+                        ClickEvent.Action.SUGGEST_COMMAND,
+                        "/ai set token " + platform + " "
                 ));
-
                 platformComponent.addExtra(clickablePlatform);
                 player.spigot().sendMessage(platformComponent);
             }
         }
         return true;
-        }
+    }
 
-        // Fallback usage
+    /**
+     * Sends usage help to the player or console.
+     *
+     * @param sender The command sender (player or console).
+     */
+    private void sendUsage(CommandSender sender) {
         sender.sendMessage("§cUsage:");
         sender.sendMessage("§7/ai set token {platform} <token>");
         sender.sendMessage("§7/ai get model list");
         sender.sendMessage("§7/ai get platform list");
-        return true;
+    }
+
+    /**
+     * Sorts platform names in alphabetical order and ensures "customurl" appears last.
+     * Filters platform names using [0-9a-z]+ unless it's "customurl".
+     *
+     * @param map The map of platform names to model lists.
+     * @return A sorted list of valid platform names.
+     */
+    private List<String> getSortedPlatformKeys(Map<String, ?> map) {
+        List<String> keys = map.keySet().stream()
+                .filter(k -> isValidKey(k) || k.equalsIgnoreCase("customurl"))
+                .sorted()
+                .collect(Collectors.toList());
+
+        if (keys.remove("customurl")) {
+            keys.add("customurl");
+        }
+
+        return keys;
+    }
+
+    /**
+     * Checks if the given key is a valid platform or model/server identifier.
+     * A valid key matches the pattern [0-9a-z]+.
+     *
+     * @param key The string to validate.
+     * @return true if the key is valid.
+     */
+    private boolean isValidKey(String key) {
+        return key.matches("[0-9a-zA-Z_-]+");
     }
 }
