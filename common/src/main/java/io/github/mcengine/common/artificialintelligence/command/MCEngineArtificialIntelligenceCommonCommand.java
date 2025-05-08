@@ -21,8 +21,9 @@ import java.util.stream.Collectors;
  * <p>
  * Supported commands:
  * - /ai set token {platform} <token>
- * - /ai get model list
  * - /ai get platform list
+ * - /ai get platform model list
+ * - /ai get platform {platform} model list
  * - /ai get addon list
  * - /ai get dlc list
  */
@@ -70,13 +71,6 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
             return true;
         }
 
-        // /ai get model list
-        if (args.length == 3 && args[0].equalsIgnoreCase("get")
-                && args[1].equalsIgnoreCase("model")
-                && args[2].equalsIgnoreCase("list")) {
-            return handleModelList(player);
-        }
-
         // /ai get platform list
         if (args.length == 3 && args[0].equalsIgnoreCase("get")
                 && args[1].equalsIgnoreCase("platform")
@@ -91,12 +85,18 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
             return handleExtensionList(player, args[1]);
         }
 
-        // /ai get {platform} model list
-        if (args.length == 4 && args[0].equalsIgnoreCase("get")
-                && isValidKey(args[1])
-                && args[2].equalsIgnoreCase("model")
-                && args[3].equalsIgnoreCase("list")) {
-            return handleModelListByPlatform(player, args[1]);
+        // /ai get platform {platform} model list OR /ai get platform model list
+        if ((args.length == 4 || args.length == 5)
+            && args[0].equalsIgnoreCase("get")
+            && args[1].equalsIgnoreCase("platform")
+            && ((args.length == 4 && args[2].equalsIgnoreCase("model") && args[3].equalsIgnoreCase("list")) ||
+                (args.length == 5 && isValidKey(args[2]) && args[3].equalsIgnoreCase("model") && args[4].equalsIgnoreCase("list")))) {
+
+            if (args.length == 4) {
+            return handleModelList(player); // get all platforms
+            } else {
+            return handleModelListByPlatform(player, args[2]); // get specific platform
+            }
         }
 
         sendUsage(sender);
@@ -277,10 +277,11 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
     private void sendUsage(CommandSender sender) {
         sender.sendMessage("§cUsage:");
         sender.sendMessage("§7/ai set token {platform} <token>");
-        sender.sendMessage("§7/ai get model list");
-        sender.sendMessage("§7/ai get platform list");
         sender.sendMessage("§7/ai get addon list");
         sender.sendMessage("§7/ai get dlc list");
+        sender.sendMessage("§7/ai get platform list");
+        sender.sendMessage("§7/ai get platform model list");
+        sender.sendMessage("§7/ai get platform {platform} model list");
     }
 
     /**

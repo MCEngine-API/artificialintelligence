@@ -8,17 +8,15 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Tab completer for AI commands.
  * Supports auto-completion for:
  * - /ai set token {platform} <token>
- * - /ai get model list
  * - /ai get platform list
+ * - /ai get platform model list
+ * - /ai get platform {platform} model list
  * - /ai get addon list
  * - /ai get dlc list
  */
@@ -54,21 +52,7 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
      * Used for: /ai get model <third>.
      * Includes: "list".
      */
-    private static final List<String> THIRD_GET_MODEL = Arrays.asList("list");
-
-    /**
-     * Third-level keywords for listing platforms.
-     * Used for: /ai get platform <third>.
-     * Includes: "list".
-     */
-    private static final List<String> THIRD_GET_PLATFORM = Arrays.asList("list");
-
-    /**
-     * Third-level keywords for listing addons or dlcs.
-     * Includes: "list".
-     */
-    private static final List<String> THIRD_GET_EXTENSION = Arrays.asList("list");
-
+    private static final List<String> LIST_KEYWORD = Arrays.asList("list");
     /**
      * Supported AI platform identifiers used when setting tokens.
      */
@@ -110,23 +94,46 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
             }
 
             case 3 -> {
-                if ("set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
+                if ("get".equalsIgnoreCase(args[0])) {
+                    if ("platform".equalsIgnoreCase(args[1])) {
+                        completions.add("list");
+                        completions.add("model");
+                        completions.addAll(getAllValidPlatforms());
+                    } else if ("model".equalsIgnoreCase(args[1]) ||
+                            "addon".equalsIgnoreCase(args[1]) ||
+                            "dlc".equalsIgnoreCase(args[1])) {
+                        completions.add("list");
+                    }
+                } else if ("set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
                     completions.addAll(PLATFORMS);
                     completions.addAll(getCustomServers());
-                } else if ("get".equalsIgnoreCase(args[0])) {
-                    switch (args[1].toLowerCase()) {
-                        case "model" -> completions.addAll(THIRD_GET_MODEL);
-                        case "platform" -> completions.addAll(THIRD_GET_PLATFORM);
-                        case "addon", "dlc" -> completions.addAll(THIRD_GET_EXTENSION);
-                    }
                 }
             }
 
             case 4 -> {
-                if ("set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
+                if ("get".equalsIgnoreCase(args[0]) && "platform".equalsIgnoreCase(args[1])) {
+                    String arg = args[2];
+            
+                    // Suggest 'model' after a valid platform: /ai get platform {platform}
+                    if (getAllValidPlatforms().contains(arg)) {
+                        completions.add("model");
+                    }
+            
+                    // Suggest 'list' if the user typed: /ai get platform model
+                    if ("model".equalsIgnoreCase(arg)) {
+                        completions.add("list");
+                    }
+                } else if ("set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
                     completions.add("<your_token>");
-                } else if ("get".equalsIgnoreCase(args[0]) && "model".equalsIgnoreCase(args[2])) {
-                    completions.addAll(getAllValidPlatforms());
+                }
+            }
+
+            case 5 -> {
+                if ("get".equalsIgnoreCase(args[0]) &&
+                    "platform".equalsIgnoreCase(args[1]) &&
+                    getAllValidPlatforms().contains(args[2]) &&
+                    "model".equalsIgnoreCase(args[3])) {
+                    completions.add("list");
                 }
             }
         }
