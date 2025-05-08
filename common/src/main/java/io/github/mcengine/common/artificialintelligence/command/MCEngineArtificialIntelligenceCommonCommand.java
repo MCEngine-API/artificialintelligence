@@ -8,7 +8,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Command executor for AI-related operations.
@@ -97,21 +99,36 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
 
         // /ai get platform list
         if (args.length == 3 &&
-            "get".equalsIgnoreCase(args[0]) &&
-            "platform".equalsIgnoreCase(args[1]) &&
-            "list".equalsIgnoreCase(args[2])) {
+        "get".equalsIgnoreCase(args[0]) &&
+        "platform".equalsIgnoreCase(args[1]) &&
+        "list".equalsIgnoreCase(args[2])) {
 
-            Map<String, Map<String, ?>> models = MCEngineArtificialIntelligenceApiUtilAi.getAllModels();
-            if (models.isEmpty()) {
-                player.sendMessage("§cNo platforms are currently registered.");
-                return true;
-            }
-
-            player.sendMessage("§eRegistered Platforms:");
-            for (String platform : models.keySet()) {
-                player.sendMessage("§7- §b" + platform);
-            }
+        Map<String, Map<String, ?>> models = MCEngineArtificialIntelligenceApiUtilAi.getAllModels();
+        if (models.isEmpty()) {
+            player.sendMessage("§cNo platforms are currently registered.");
             return true;
+        }
+
+        player.sendMessage("§eRegistered Platforms:");
+        for (Map.Entry<String, Map<String, ?>> entry : models.entrySet()) {
+            String platform = entry.getKey();
+            player.sendMessage("§7- §b" + platform);
+
+            if ("customurl".equalsIgnoreCase(platform)) {
+                // Use a set to avoid duplicate server names
+                Set<String> servers = new HashSet<>();
+                for (String key : entry.getValue().keySet()) {
+                    String[] parts = key.split(":", 2);
+                    if (parts.length >= 1) {
+                        servers.add(parts[0]);
+                    }
+                }
+                for (String server : servers) {
+                    player.sendMessage("  §8- " + server);
+                }
+            }
+        }
+        return true;
         }
 
         // Fallback usage
