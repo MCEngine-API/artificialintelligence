@@ -62,41 +62,47 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
             return true;
         }
 
-        // /ai set token {platform} <token>
-        if (args.length == 4 && args[0].equalsIgnoreCase("set") && args[1].equalsIgnoreCase("token")) {
-            String platform = args[2];
-            String token = args[3];
-            db.setPlayerToken(player.getUniqueId().toString(), platform, token);
-            player.sendMessage("§aSuccessfully set your token for platform: " + platform);
+        if (args.length < 3) {
+            sendUsage(sender);
             return true;
         }
 
-        // /ai get platform list
-        if (args.length == 3 && args[0].equalsIgnoreCase("get")
-                && args[1].equalsIgnoreCase("platform")
-                && args[2].equalsIgnoreCase("list")) {
-            return handlePlatformList(player);
-        }
+        String action = args[0].toLowerCase();
+        String target = args[1].toLowerCase();
 
-        // /ai get addon|dlc list
-        if (args.length == 3 && args[0].equalsIgnoreCase("get")
-                && (args[1].equalsIgnoreCase("addon") || args[1].equalsIgnoreCase("dlc"))
-                && args[2].equalsIgnoreCase("list")) {
-            return handleExtensionList(player, args[1]);
-        }
+        switch (action) {
+            case "set":
+                if ("token".equals(target) && args.length == 4) {
+                    String platform = args[2];
+                    String token = args[3];
+                    db.setPlayerToken(player.getUniqueId().toString(), platform, token);
+                    player.sendMessage("§aSuccessfully set your token for platform: " + platform);
+                    return true;
+                }
+                break;
 
-        // /ai get platform {platform} model list OR /ai get platform model list
-        if ((args.length == 4 || args.length == 5)
-            && args[0].equalsIgnoreCase("get")
-            && args[1].equalsIgnoreCase("platform")
-            && ((args.length == 4 && args[2].equalsIgnoreCase("model") && args[3].equalsIgnoreCase("list")) ||
-                (args.length == 5 && isValidKey(args[2]) && args[3].equalsIgnoreCase("model") && args[4].equalsIgnoreCase("list")))) {
+            case "get":
+                if ("platform".equals(target)) {
+                    if ("list".equalsIgnoreCase(args[2]) && args.length == 3) {
+                        return handlePlatformList(player);
+                    }
 
-            if (args.length == 4) {
-            return handleModelList(player); // get all platforms
-            } else {
-            return handleModelListByPlatform(player, args[2]); // get specific platform
-            }
+                    // /ai get platform model list
+                    if (args.length == 4 && "model".equalsIgnoreCase(args[2]) && "list".equalsIgnoreCase(args[3])) {
+                        return handleModelList(player);
+                    }
+
+                    // /ai get platform {platform} model list
+                    if (args.length == 5 && isValidKey(args[2]) && "model".equalsIgnoreCase(args[3]) && "list".equalsIgnoreCase(args[4])) {
+                        return handleModelListByPlatform(player, args[2]);
+                    }
+                }
+
+                if (args.length == 3 && "list".equalsIgnoreCase(args[2])
+                        && ("addon".equals(target) || "dlc".equals(target))) {
+                    return handleExtensionList(player, target);
+                }
+                break;
         }
 
         sendUsage(sender);

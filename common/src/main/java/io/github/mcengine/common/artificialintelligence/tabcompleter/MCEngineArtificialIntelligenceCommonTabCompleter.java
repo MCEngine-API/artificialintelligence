@@ -80,64 +80,54 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!command.getName().equalsIgnoreCase("ai")) return null;
 
+        final String arg0 = args.length > 0 ? args[0].toLowerCase() : "";
+        final String arg1 = args.length > 1 ? args[1].toLowerCase() : "";
+        final String arg2 = args.length > 2 ? args[2] : "";
+        final String arg3 = args.length > 3 ? args[3].toLowerCase() : "";
+
         List<String> completions = new ArrayList<>();
 
         switch (args.length) {
             case 1 -> completions.addAll(FIRST);
 
             case 2 -> {
-                if ("set".equalsIgnoreCase(args[0])) {
-                    completions.addAll(SECOND_SET);
-                } else if ("get".equalsIgnoreCase(args[0])) {
-                    completions.addAll(SECOND_GET);
-                }
+                if ("set".equals(arg0)) completions.addAll(SECOND_SET);
+                else if ("get".equals(arg0)) completions.addAll(SECOND_GET);
             }
 
             case 3 -> {
-                if ("get".equalsIgnoreCase(args[0])) {
-                    if ("platform".equalsIgnoreCase(args[1])) {
+                if ("get".equals(arg0)) {
+                    if ("platform".equals(arg1)) {
                         completions.add("list");
                         completions.add("model");
                         completions.addAll(getAllValidPlatforms());
-                    } else if ("addon".equalsIgnoreCase(args[1]) ||
-                            "dlc".equalsIgnoreCase(args[1])) {
+                    } else if ("addon".equals(arg1) || "dlc".equals(arg1)) {
                         completions.add("list");
                     }
-                } else if ("set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
+                } else if ("set".equals(arg0) && "token".equals(arg1)) {
                     completions.addAll(PLATFORMS);
                     completions.addAll(getCustomServers());
                 }
             }
 
             case 4 -> {
-                if ("get".equalsIgnoreCase(args[0]) && "platform".equalsIgnoreCase(args[1])) {
-                    String arg = args[2];
-            
-                    // Suggest 'model' after a valid platform: /ai get platform {platform}
-                    if (getAllValidPlatforms().contains(arg)) {
-                        completions.add("model");
-                    }
-            
-                    // Suggest 'list' if the user typed: /ai get platform model
-                    if ("model".equalsIgnoreCase(arg)) {
-                        completions.add("list");
-                    }
-                } else if ("set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
+                if ("get".equals(arg0) && "platform".equals(arg1)) {
+                    if (getAllValidPlatforms().contains(arg2)) completions.add("model");
+                    if ("model".equals(arg2.toLowerCase())) completions.add("list");
+                } else if ("set".equals(arg0) && "token".equals(arg1)) {
                     completions.add("<your_token>");
                 }
             }
 
             case 5 -> {
-                if ("get".equalsIgnoreCase(args[0]) &&
-                    "platform".equalsIgnoreCase(args[1]) &&
-                    getAllValidPlatforms().contains(args[2]) &&
-                    "model".equalsIgnoreCase(args[3])) {
+                if ("get".equals(arg0) && "platform".equals(arg1) &&
+                    getAllValidPlatforms().contains(arg2) && "model".equals(arg3)) {
                     completions.add("list");
                 }
             }
         }
 
-        return completions;
+        return completions.isEmpty() ? null : completions;
     }
 
     /**
