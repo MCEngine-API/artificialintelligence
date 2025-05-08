@@ -61,6 +61,7 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
             return true;
         }
 
+        // /ai set token {platform} <token>
         if (args.length == 4 && args[0].equalsIgnoreCase("set") && args[1].equalsIgnoreCase("token")) {
             String platform = args[2];
             String token = args[3];
@@ -69,18 +70,33 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
             return true;
         }
 
-        if (args.length == 3 && args[0].equalsIgnoreCase("get")) {
-            if (args[1].equalsIgnoreCase("model") && args[2].equalsIgnoreCase("list")) {
-                return handleModelList(player);
-            }
+        // /ai get model list
+        if (args.length == 3 && args[0].equalsIgnoreCase("get")
+                && args[1].equalsIgnoreCase("model")
+                && args[2].equalsIgnoreCase("list")) {
+            return handleModelList(player);
+        }
 
-            if (args[1].equalsIgnoreCase("platform") && args[2].equalsIgnoreCase("list")) {
-                return handlePlatformList(player);
-            }
+        // /ai get platform list
+        if (args.length == 3 && args[0].equalsIgnoreCase("get")
+                && args[1].equalsIgnoreCase("platform")
+                && args[2].equalsIgnoreCase("list")) {
+            return handlePlatformList(player);
+        }
 
-            if ((args[1].equalsIgnoreCase("addon") || args[1].equalsIgnoreCase("dlc")) && args[2].equalsIgnoreCase("list")) {
-                return handleExtensionList(player, args[1]);
-            }
+        // /ai get addon|dlc list
+        if (args.length == 3 && args[0].equalsIgnoreCase("get")
+                && (args[1].equalsIgnoreCase("addon") || args[1].equalsIgnoreCase("dlc"))
+                && args[2].equalsIgnoreCase("list")) {
+            return handleExtensionList(player, args[1]);
+        }
+
+        // /ai get {platform} model list
+        if (args.length == 4 && args[0].equalsIgnoreCase("get")
+                && isValidKey(args[1])
+                && args[2].equalsIgnoreCase("model")
+                && args[3].equalsIgnoreCase("list")) {
+            return handleModelListByPlatform(player, args[1]);
         }
 
         sendUsage(sender);
@@ -133,6 +149,47 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
                         .sorted()
                         .forEach(modelName -> player.sendMessage("  §8- " + modelName));
             }
+        }
+        return true;
+    }
+
+    /**
+     * Handles the "/ai get {platform} model list" command.
+     * Displays registered models for a specific platform only.
+     *
+     * @param player The player executing the command.
+     * @param platform The platform to filter by.
+     * @return true if handled successfully.
+     */
+    private boolean handleModelListByPlatform(Player player, String platform) {
+        Map<String, Map<String, ?>> models = MCEngineArtificialIntelligenceApiUtilAi.getAllModels();
+        if (!models.containsKey(platform)) {
+            player.sendMessage("§cPlatform not found: " + platform);
+            return true;
+        }
+
+        Map<String, ?> modelMap = models.get(platform);
+        player.sendMessage("§eModels for platform §b" + platform + "§e:");
+
+        if (platform.equalsIgnoreCase("customurl")) {
+            Map<String, List<String>> serverModels = new TreeMap<>();
+            for (String key : modelMap.keySet()) {
+                String[] parts = key.split(":", 2);
+                if (parts.length == 2 && isValidKey(parts[0]) && isValidKey(parts[1])) {
+                    serverModels.computeIfAbsent(parts[0], k -> new ArrayList<>()).add(parts[1]);
+                }
+            }
+            for (Map.Entry<String, List<String>> entry : serverModels.entrySet()) {
+                player.sendMessage("  §7- " + entry.getKey());
+                for (String model : entry.getValue().stream().sorted().toList()) {
+                    player.sendMessage("    §8- " + model);
+                }
+            }
+        } else {
+            modelMap.keySet().stream()
+                .filter(this::isValidKey)
+                .sorted()
+                .forEach(modelName -> player.sendMessage("  §8- " + modelName));
         }
         return true;
     }

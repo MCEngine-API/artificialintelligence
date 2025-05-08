@@ -1,5 +1,7 @@
 package io.github.mcengine.common.artificialintelligence.tabcompleter;
 
+import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilAi;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
@@ -9,6 +11,7 @@ import org.bukkit.plugin.Plugin;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Tab completer for AI commands.
@@ -122,6 +125,8 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
             case 4 -> {
                 if ("set".equalsIgnoreCase(args[0]) && "token".equalsIgnoreCase(args[1])) {
                     completions.add("<your_token>");
+                } else if ("get".equalsIgnoreCase(args[0]) && "model".equalsIgnoreCase(args[2])) {
+                    completions.addAll(getAllValidPlatforms());
                 }
             }
         }
@@ -143,5 +148,16 @@ public class MCEngineArtificialIntelligenceCommonTabCompleter implements TabComp
             }
         }
         return custom;
+    }
+
+    /**
+     * Retrieves all registered platforms for model listing.
+     * Used for: /ai get {platform} model list
+     *
+     * @return A list of valid platform identifiers.
+     */
+    private List<String> getAllValidPlatforms() {
+        Map<String, Map<String, ?>> models = MCEngineArtificialIntelligenceApiUtilAi.getAllModels();
+        return new ArrayList<>(models.keySet());
     }
 }
