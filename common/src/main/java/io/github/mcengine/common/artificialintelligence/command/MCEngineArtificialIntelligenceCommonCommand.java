@@ -29,6 +29,10 @@ import java.util.stream.Collectors;
  */
 public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecutor {
 
+    /**
+     * The main plugin instance used for accessing plugin-specific utilities,
+     * such as file operations, configuration, and extension loading.
+     */
     private final Plugin plugin;
 
     /**

@@ -15,8 +15,19 @@ import java.util.Date;
  */
 public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
 
+    /**
+     * Secret key used for token validation (may be configured).
+     */
     private String secretKey;
+
+    /**
+     * Token used to verify license or authentication.
+     */
     private String token;
+
+    /**
+     * Expiration date of the token (if applicable).
+     */
     private Date expirationDate;
 
     /**
