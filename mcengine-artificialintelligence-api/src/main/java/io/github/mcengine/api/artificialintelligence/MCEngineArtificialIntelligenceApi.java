@@ -189,6 +189,17 @@ public class MCEngineArtificialIntelligenceApi {
     }
 
     /**
+     * Retrieves all registered AI models grouped by platform.
+     *
+     * @return A map of platform names to their associated model instances.
+     */
+    public Map<String, Map<String, IMCEngineArtificialIntelligenceApiModel>> getAiAll() {
+        //noinspection unchecked
+        return (Map<String, Map<String, IMCEngineArtificialIntelligenceApiModel>>) (Map<?, ?>)
+                MCEngineArtificialIntelligenceApiUtilAi.getAllModels();
+    }
+
+    /**
      * Shortcut to get response from AI.
      *
      * @param platform AI platform
