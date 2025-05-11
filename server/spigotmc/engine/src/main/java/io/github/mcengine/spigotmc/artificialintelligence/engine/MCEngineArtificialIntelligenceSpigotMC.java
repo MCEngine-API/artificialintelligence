@@ -42,8 +42,6 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
 
 
         api.checkUpdate("github", "MCEngine", "artificialintelligence", getConfig().getString("github.token", "null"));
-
-        scheduleMidnightCheck();
     }
 
     /**
@@ -52,41 +50,5 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
     @Override
     public void onDisable() {
         getLogger().info("MCEngineArtificialIntelligenceSpigotMC has been disabled.");
-    }
-
-    /**
-     * Validates the current token using the API's validation method.
-     *
-     * @return true if the token is valid and not expired; false otherwise.
-     */
-    private boolean validateToken() {
-        return MCEngineArtificialIntelligenceApiUtilToken.validateToken(getName(), secretKey, token, new Date());
-    }
-
-    /**
-     * Schedules a daily token validation check at midnight.
-     * If the token is invalid at midnight, the plugin will disable itself.
-     */
-    private void scheduleMidnightCheck() {
-        long delay = calculateDelayUntilMidnight();
-        long period = 24L * 60L * 60L * 20L; // 24 hours in ticks (20 ticks/sec)
-
-        Bukkit.getScheduler().runTaskTimer(this, () -> {
-            if (!validateToken()) {
-                getLogger().warning("Token expired or invalid at midnight! Disabling plugin...");
-                getServer().getPluginManager().disablePlugin(this);
-            }
-        }, delay, period);
-    }
-
-    /**
-     * Calculates the number of server ticks until midnight.
-     *
-     * @return The delay in ticks until the next midnight.
-     */
-    private long calculateDelayUntilMidnight() {
-        long now = System.currentTimeMillis();
-        long tomorrowMidnight = ((now / (24L * 60L * 60L * 1000L)) + 1L) * (24L * 60L * 60L * 1000L);
-        return (tomorrowMidnight - now) / 50L; // Convert ms to ticks
     }
 }
