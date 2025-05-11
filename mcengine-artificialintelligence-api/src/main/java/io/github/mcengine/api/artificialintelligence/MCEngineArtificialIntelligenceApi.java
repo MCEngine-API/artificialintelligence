@@ -5,7 +5,6 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.text.ParseException;
 import java.util.Date;
-import java.util.logging.Logger;
 
 import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
 import io.github.mcengine.api.artificialintelligence.database.sqlite.MCEngineArtificialIntelligenceApiDatabaseSQLite;
@@ -34,11 +33,6 @@ public class MCEngineArtificialIntelligenceApi {
     private final Plugin plugin;
 
     /**
-     * Logger for logging plugin-related messages.
-     */
-    private final Logger logger;
-
-    /**
      * Constructs a new AI API instance with the given plugin.
      * Initializes the AI model and loads addons and DLCs.
      *
@@ -48,7 +42,6 @@ public class MCEngineArtificialIntelligenceApi {
         instance = this;
         new Metrics(plugin, 25556);
         this.plugin = plugin;
-        this.logger = plugin.getLogger();
         loadAddOns();
         loadDLCs();
 
