@@ -9,6 +9,11 @@
 | --- | --- | --- |
 | [`Global`](https://github.com/orgs/MCEngine/teams/global) | Admin, Developer | Owner of project, Developer of the project |
 
+# Addition Contents
+
+[**AddOn**](https://github.com/MCEngine-AddOn)
+[**DLC**](https://github.com/MCEngine-DLC)
+
 # 👥 Members
 
 <table align="center">
