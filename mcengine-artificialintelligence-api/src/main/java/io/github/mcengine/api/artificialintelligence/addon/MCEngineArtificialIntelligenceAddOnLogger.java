@@ -29,7 +29,7 @@ public class MCEngineArtificialIntelligenceAddOnLogger {
      * @param message The message to log.
      */
     public void info(String message) {
-        logger.info("[ AddOn ] [ " + addOnName + " ] " + message);
+        logger.info("[AddOn] [" + addOnName + "] " + message);
     }
 
     /**
@@ -38,7 +38,7 @@ public class MCEngineArtificialIntelligenceAddOnLogger {
      * @param message The message to log.
      */
     public void warning(String message) {
-        logger.warning("[ AddOn ] [ " + addOnName + " ] " + message);
+        logger.warning("[AddOn] [" + addOnName + "] " + message);
     }
 
     /**
@@ -47,6 +47,6 @@ public class MCEngineArtificialIntelligenceAddOnLogger {
      * @param message The message to log.
      */
     public void severe(String message) {
-        logger.severe("[ AddOn ] [ " + addOnName + " ] " + message);
+        logger.severe("[AddOn] [" + addOnName + "] " + message);
     }
 }

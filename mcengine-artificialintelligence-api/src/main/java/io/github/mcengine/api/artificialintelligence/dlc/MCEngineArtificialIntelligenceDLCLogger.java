@@ -29,7 +29,7 @@ public class MCEngineArtificialIntelligenceDLCLogger {
      * @param message The message to log.
      */
     public void info(String message) {
-        logger.info("[ DLC ] [ " + dlcName + " ] " + message);
+        logger.info("[DLC] [" + dlcName + "] " + message);
     }
 
     /**
@@ -38,7 +38,7 @@ public class MCEngineArtificialIntelligenceDLCLogger {
      * @param message The message to log.
      */
     public void warning(String message) {
-        logger.warning("[ DLC ] [ " + dlcName + " ] " + message);
+        logger.warning("[DLC] [" + dlcName + "] " + message);
     }
 
     /**
@@ -47,6 +47,6 @@ public class MCEngineArtificialIntelligenceDLCLogger {
      * @param message The message to log.
      */
     public void severe(String message) {
-        logger.severe("[ DLC ] [ " + dlcName + " ] " + message);
+        logger.severe("[DLC] [" + dlcName + "] " + message);
     }
 }
