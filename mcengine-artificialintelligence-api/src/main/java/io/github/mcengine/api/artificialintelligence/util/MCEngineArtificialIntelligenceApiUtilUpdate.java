@@ -99,6 +99,7 @@ public class MCEngineArtificialIntelligenceApiUtilUpdate {
         });
     }
 
+    @SuppressWarnings("unused")
     private static boolean isUpdateAvailable(String currentVersion, String latestVersion) {
         String[] lv = latestVersion.split("\\.");
         String[] cv = currentVersion.split("\\.");
