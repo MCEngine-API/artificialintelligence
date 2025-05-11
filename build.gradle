@@ -29,14 +29,16 @@ version = project.properties[project.name + '.version'] ?: 'undefined'
 group = 'io.github.mcengine'
 
 ext {
-    /* Name */
+    // User
     git_user_name = envVars['GIT_USER_NAME'] ?: System.getenv('GIT_USER_NAME') ?: 'null'
-    git_organization_name = envVars['GIT_ORGANIZATION_NAME'] ?: System.getenv('GIT_ORGANIZATION_NAME') ?: 'MCEngine'
-    git_repository_name = envVars['GIT_REPOSITORY_NAME'] ?: System.getenv('GIT_REPOSITORY_NAME') ?: 'artificialintelligence'
-
-    /* Token */
     git_user_token = envVars['GIT_USER_TOKEN'] ?: System.getenv('GIT_USER_TOKEN') ?: 'null'
+
+    // Organization
+    git_organization_name = envVars['GIT_ORGANIZATION_NAME'] ?: System.getenv('GIT_ORGANIZATION_NAME') ?: 'MCEngine'
     git_organization_token = envVars['GIT_ORGANIZATION_TOKEN'] ?: System.getenv('GIT_ORGANIZATION_TOKEN') ?: 'null'
+
+    // Repository
+    git_repository_name = envVars['GIT_REPOSITORY_NAME'] ?: System.getenv('GIT_REPOSITORY_NAME') ?: 'artificialintelligence'
     git_repository_token = envVars['GIT_REPOSITORY_TOKEN'] ?: System.getenv('GIT_REPOSITORY_TOKEN') ?: 'null'
 
     /* Project Information */
