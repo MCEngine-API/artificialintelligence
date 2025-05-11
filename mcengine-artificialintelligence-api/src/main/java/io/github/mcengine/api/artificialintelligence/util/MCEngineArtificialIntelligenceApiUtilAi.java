@@ -1,8 +1,18 @@
 package io.github.mcengine.api.artificialintelligence.util;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.github.mcengine.api.artificialintelligence.model.*;
 import org.bukkit.plugin.Plugin;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -14,6 +24,109 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
 
     // 🔥 GLOBAL cache shared across ALL plugins (platform → (model → instance))
     private static final Map<String, Map<String, IMCEngineArtificialIntelligenceApiModel>> modelCache = new HashMap<>();
+
+    /**
+     * Sends a prompt message to an AI model endpoint and retrieves the response.
+     * This method supports token decryption (when user-specific tokens are used) and shared logic
+     * for different APIs like OpenAI, OpenRouter, DeepSeek, and custom URLs.
+     *
+     * @param plugin       The Bukkit plugin instance used for logging.
+     * @param endpoint     The API endpoint URL (e.g., https://api.openai.com/v1/chat/completions).
+     * @param aiModel      The AI model identifier (e.g., "gpt-4", "deepseek-chat").
+     * @param defaultToken The default API token configured in the plugin.
+     * @param token        The user-specific token; if different from default, it will be decrypted.
+     * @param message      The user message or prompt to send to the AI model.
+     * @param isOpenRouter Whether to include OpenRouter-specific headers (Referer, X-Title).
+     * @return The AI-generated response as a string, or an error message if something fails.
+     */
+    public static String getResponse(
+            Plugin plugin,
+            String endpoint,
+            String aiModel,
+            String defaultToken,
+            String token,
+            String message,
+            boolean isOpenRouter
+    ) {
+        if (token == null || token.isEmpty()) {
+            plugin.getLogger().severe("Token is missing or invalid.");
+            return "Error: Missing or invalid token.";
+        }
+
+        String actualToken = token;
+
+        // Decrypt the user token only if it differs from the default (server) token
+        if (!token.equals(defaultToken)) {
+            actualToken = MCEngineArtificialIntelligenceApiUtilToken.decryptToken(token);
+            if (actualToken == null || actualToken.isEmpty()) {
+                plugin.getLogger().warning("Failed to decrypt user token.");
+                return "Error: Invalid or corrupt user token.";
+            }
+        }
+
+        try {
+            URI uri = URI.create(endpoint);
+            URL url = uri.toURL();
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Authorization", "Bearer " + actualToken);
+            conn.setRequestProperty("Content-Type", "application/json");
+
+            // Optional headers for OpenRouter
+            if (isOpenRouter) {
+                conn.setRequestProperty("HTTP-Referer", "https://github.com/mcengine");
+                conn.setRequestProperty("X-Title", "MCEngine AI");
+            }
+
+            conn.setDoOutput(true);
+
+            // Build JSON payload
+            JsonObject payload = new JsonObject();
+            payload.addProperty("model", aiModel);
+            payload.addProperty("temperature", 0.7);
+
+            JsonArray messages = new JsonArray();
+            JsonObject userMessage = new JsonObject();
+            userMessage.addProperty("role", "user");
+            userMessage.addProperty("content", message);
+            messages.add(userMessage);
+            payload.add("messages", messages);
+
+            // Send request
+            try (OutputStream os = conn.getOutputStream()) {
+                os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
+            }
+
+            // Handle response
+            int statusCode = conn.getResponseCode();
+            if (statusCode != 200) {
+                plugin.getLogger().warning("AI API returned status: " + statusCode);
+                return "Error: API request failed.";
+            }
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
+            StringBuilder responseBuilder = new StringBuilder();
+            String line;
+            while ((line = in.readLine()) != null) {
+                responseBuilder.append(line);
+            }
+            in.close();
+
+            JsonObject responseJson = JsonParser.parseString(responseBuilder.toString()).getAsJsonObject();
+            JsonArray choices = responseJson.getAsJsonArray("choices");
+
+            if (choices.size() > 0) {
+                JsonObject messageObj = choices.get(0).getAsJsonObject().getAsJsonObject("message");
+                return messageObj.get("content").getAsString().trim();
+            }
+
+            return "No response from AI.";
+        } catch (Exception e) {
+            plugin.getLogger().severe("AI API error: " + e.getMessage());
+            return "Exception: " + e.getMessage();
+        }
+    }
 
     /**
      * Registers an AI model instance if not already cached.
