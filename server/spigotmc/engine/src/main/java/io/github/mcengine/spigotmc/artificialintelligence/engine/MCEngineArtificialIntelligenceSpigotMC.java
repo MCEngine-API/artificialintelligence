@@ -34,30 +34,6 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
             return;
         }
 
-        /* secretKey = getConfig().getString("plugin.secretKey", "mcengine");
-        token = getConfig().getString("plugin.token", "");
-
-        if (token == null || token.isEmpty()) {
-            getLogger().warning("No token found in config.yml!");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
-
-        expirationDate = MCEngineArtificialIntelligenceApiUtilToken.extractExpirationDate(getName(), secretKey, token);
-        if (expirationDate == null || expirationDate.getTime() == 0L) {
-            getLogger().warning("Failed to extract expiration date from token!");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
-
-        if (!validateToken()) {
-            getLogger().warning("Token validation failed or expired!");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
-
-        getLogger().info("Token validated successfully!"); */
-
         MCEngineArtificialIntelligenceApiUtilToken.initialize(this);
         MCEngineArtificialIntelligenceApi api = new MCEngineArtificialIntelligenceApi(this);
 
