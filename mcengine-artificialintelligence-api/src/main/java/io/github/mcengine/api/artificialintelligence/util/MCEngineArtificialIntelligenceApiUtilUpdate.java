@@ -40,18 +40,45 @@ public class MCEngineArtificialIntelligenceApiUtilUpdate {
         }
     }
 
+    /**
+     * Checks for plugin updates from a GitHub repository.
+     *
+     * @param plugin        The plugin instance.
+     * @param org           The GitHub organization or user name.
+     * @param repository    The GitHub repository name.
+     * @param githubToken   The GitHub API token (optional).
+     */
     private static void checkUpdateGitHub(Plugin plugin, String org, String repository, String githubToken) {
         String apiUrl = String.format("https://api.github.com/repos/%s/%s/releases/latest", org, repository);
         String downloadUrl = String.format("https://github.com/%s/%s/releases", org, repository);
         fetchAndCompareUpdate(plugin, apiUrl, downloadUrl, githubToken, "application/vnd.github.v3+json", false);
     }
 
+    /**
+     * Checks for plugin updates from a GitLab repository.
+     *
+     * @param plugin        The plugin instance.
+     * @param org           The GitLab group or user name.
+     * @param repository    The GitLab repository name.
+     * @param gitlabToken   The GitLab API token (optional).
+     */
     private static void checkUpdateGitLab(Plugin plugin, String org, String repository, String gitlabToken) {
         String apiUrl = String.format("https://gitlab.com/api/v4/projects/%s%%2F%s/releases", org, repository);
         String downloadUrl = String.format("https://gitlab.com/%s/%s/-/releases", org, repository);
         fetchAndCompareUpdate(plugin, apiUrl, downloadUrl, gitlabToken, "application/json", true);
     }
 
+    /**
+     * Fetches the latest release from the API and compares it with the current plugin version.
+     * If an update is available, logs update information to the console.
+     *
+     * @param plugin       The plugin instance.
+     * @param apiUrl       The API endpoint URL.
+     * @param downloadUrl  The URL to the release download page.
+     * @param token        The API token (optional).
+     * @param acceptHeader The accept header for the request (e.g., GitHub requires a specific one).
+     * @param jsonArray    Whether the response is a JSON array (true for GitLab).
+     */
     private static void fetchAndCompareUpdate(Plugin plugin, String apiUrl, String downloadUrl, String token, String acceptHeader, boolean jsonArray) {
         Logger logger = plugin.getLogger();
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
@@ -99,6 +126,13 @@ public class MCEngineArtificialIntelligenceApiUtilUpdate {
         });
     }
 
+    /**
+     * Compares the current plugin version with the latest version to determine if an update is available.
+     *
+     * @param currentVersion The currently installed version.
+     * @param latestVersion  The latest version from the API.
+     * @return true if an update is available; false otherwise.
+     */
     @SuppressWarnings("unused")
     private static boolean isUpdateAvailable(String currentVersion, String latestVersion) {
         String[] lv = latestVersion.split("\\.");

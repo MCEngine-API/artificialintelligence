@@ -3,8 +3,6 @@ package io.github.mcengine.api.artificialintelligence;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.text.ParseException;
-import java.util.Date;
 import java.util.Map;
 
 import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
@@ -35,7 +33,13 @@ public class MCEngineArtificialIntelligenceApi {
 
     /**
      * Constructs a new AI API instance with the given plugin.
-     * Initializes the AI model and loads addons and DLCs.
+     * Initializes the AI model and loads addons and DLCs from the filesystem.
+     *
+     * Also loads supported models from config:
+     * - ai.{platform}.models
+     * - ai.custom.{server}.models
+     *
+     * Supports platforms: deepseek, openai, openrouter, customurl.
      *
      * @param plugin The Bukkit plugin instance.
      */
@@ -56,7 +60,7 @@ public class MCEngineArtificialIntelligenceApi {
                 throw new IllegalArgumentException("Unsupported database type: " + dbType);
         }
 
-        // Load models for deepseek, openai, openrouter (multiple model config)
+        // Load models for built-in platforms
         String[] platforms = { "deepseek", "openai", "openrouter" };
         for (String platform : platforms) {
             String modelsKey = "ai." + platform + ".models";
@@ -71,7 +75,7 @@ public class MCEngineArtificialIntelligenceApi {
             }
         }
 
-        // Load models for customurl (multiple servers and models)
+        // Load models from ai.custom.{server}.models
         if (plugin.getConfig().isConfigurationSection("ai.custom")) {
             for (String server : plugin.getConfig().getConfigurationSection("ai.custom").getKeys(false)) {
                 String modelsKey = "ai.custom." + server + ".models";
@@ -89,16 +93,16 @@ public class MCEngineArtificialIntelligenceApi {
     }
 
     /**
-     * Gets the global API instance.
+     * Gets the global API singleton instance.
      *
-     * @return The {@link MCEngineArtificialIntelligenceApi} singleton instance.
+     * @return The {@link MCEngineArtificialIntelligenceApi} instance.
      */
     public static MCEngineArtificialIntelligenceApi getApi() {
         return instance;
     }
 
     /**
-     * Gets the associated plugin instance.
+     * Gets the Bukkit plugin instance linked to this API.
      *
      * @return The plugin instance.
      */
@@ -106,86 +110,91 @@ public class MCEngineArtificialIntelligenceApi {
         return plugin;
     }
 
+    /**
+     * Gets the database handler implementation.
+     *
+     * @return The database API implementation.
+     */
     public IMCEngineArtificialIntelligenceApiDatabase getDB() {
         return db;
     }
 
     /**
-     * Checks for updates by querying the specified Git platform (GitHub, GitLab, etc.)
-     * using the organization, repository, and token provided.
-     * This can be used to inform server owners or developers when a new plugin version is available.
+     * Checks for updates by querying the specified Git platform.
+     * Logs to console if a new version is available.
      *
-     * @param gitPlatform The Git platform to use (e.g., "github", "gitlab").
-     * @param org         The organization or user owning the repository.
+     * @param gitPlatform The platform to query ("github" or "gitlab").
+     * @param org         The organization or user.
      * @param repository  The repository name.
-     * @param token       The access token to authenticate with the platform API (can be optional for public repos).
+     * @param token       The access token (nullable).
      */
     public void checkUpdate(String gitPlatform, String org, String repository, String token) {
         MCEngineArtificialIntelligenceApiUtilUpdate.checkUpdate(plugin, gitPlatform, org, repository, token);
     }
 
     /**
-     * Loads AI AddOns from the "addons" folder.
+     * Loads all addons from the "addons" directory.
+     * Uses extension loader to handle AddOn registration.
      */
     private void loadAddOns() {
         MCEngineArtificialIntelligenceApiUtilExtension.loadExtensions(plugin, "addons", "AddOn");
     }
 
     /**
-     * Loads AI DLCs from the "dlcs" folder.
+     * Loads all DLCs from the "dlcs" directory.
+     * Uses extension loader to handle DLC registration.
      */
     private void loadDLCs() {
         MCEngineArtificialIntelligenceApiUtilExtension.loadExtensions(plugin, "dlcs", "DLC");
     }
 
     /**
-     * Sets a player-specific token for a given platform.
+     * Stores or updates a player's API token for a given AI platform.
      *
-     * @param playerUuid The player's UUID.
-     * @param platform   The platform name.
-     * @param token      The token to store.
+     * @param playerUuid The UUID of the player.
+     * @param platform   The platform name (e.g., "openai").
+     * @param token      The raw token to store.
      */
     public void setPlayerToken(String playerUuid, String platform, String token) {
         db.setPlayerToken(playerUuid, platform, token);
     }
 
     /**
-     * Retrieves a player-specific token for a given platform.
+     * Retrieves a stored token for a given player and platform.
      *
-     * @param playerUuid The player's UUID.
+     * @param playerUuid The UUID of the player.
      * @param platform   The platform name.
-     * @return The stored token or null if not found.
+     * @return The encrypted token or null if not found.
      */
     public String getPlayerToken(String playerUuid, String platform) {
         return db.getPlayerToken(playerUuid, platform);
     }
 
     /**
-     * Registers an AI model instance if not already cached.
-     * Called once per platform/model to initialize.
+     * Registers a model under a given platform if not already loaded.
      *
-     * @param platform AI platform
-     * @param model    model name
+     * @param platform Platform name (e.g., "openai", "customurl").
+     * @param model    Model name or server:model if custom.
      */
     public void registerModel(String platform, String model) {
         MCEngineArtificialIntelligenceApiUtilAi.registerModel(plugin, platform, model);
     }
 
     /**
-     * Retrieves the registered AI model instance.
+     * Retrieves an AI model by platform and model name.
      *
-     * @param platform AI platform
-     * @param model    model name
-     * @return AI model instance
+     * @param platform The platform name.
+     * @param model    The model name.
+     * @return The model interface or null if not registered.
      */
     public IMCEngineArtificialIntelligenceApiModel getAi(String platform, String model) {
         return MCEngineArtificialIntelligenceApiUtilAi.getAi(platform, model);
     }
 
     /**
-     * Retrieves all registered AI models grouped by platform.
+     * Gets all registered AI models mapped by platform and model name.
      *
-     * @return A map of platform names to their associated model instances.
+     * @return A nested map of platform -> model -> model instance.
      */
     public Map<String, Map<String, IMCEngineArtificialIntelligenceApiModel>> getAiAll() {
         //noinspection unchecked
@@ -194,25 +203,25 @@ public class MCEngineArtificialIntelligenceApi {
     }
 
     /**
-     * Shortcut to get response from AI.
+     * Gets a direct response from the AI using a registered model.
      *
-     * @param platform AI platform
-     * @param model    model name
-     * @param message  prompt message
-     * @return response from AI
+     * @param platform The AI platform.
+     * @param model    The model name.
+     * @param message  The prompt to send.
+     * @return The AI response.
      */
     public String getResponse(String platform, String model, String message) {
         return getAi(platform, model).getResponse(message);
     }
 
     /**
-     * Shortcut to get response from AI using a token.
+     * Gets a direct response from the AI using a provided token.
      *
-     * @param platform AI platform
-     * @param model    model name
-     * @param token    API token or user-specific key
-     * @param message  prompt message
-     * @return response from AI
+     * @param platform The AI platform.
+     * @param model    The model name.
+     * @param token    The API key or personal token.
+     * @param message  The prompt to send.
+     * @return The AI response.
      */
     public String getResponse(String platform, String model, String token, String message) {
         return getAi(platform, model).getResponse(token, message);

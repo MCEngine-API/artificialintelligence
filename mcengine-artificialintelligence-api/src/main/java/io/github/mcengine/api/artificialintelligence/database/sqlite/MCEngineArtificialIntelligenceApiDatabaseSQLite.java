@@ -13,8 +13,10 @@ import java.sql.*;
  */
 public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngineArtificialIntelligenceApiDatabase {
 
+    /** The Bukkit plugin instance. */
     private final Plugin plugin;
 
+    /** The JDBC SQLite database URL. */
     private final String databaseUrl;
 
     /**
