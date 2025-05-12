@@ -21,3 +21,5 @@ processResources {
 shadowJar {
     archiveBaseName = "${project.jarName}-SpigotMC"
 }
+
+build.dependsOn shadowJar
