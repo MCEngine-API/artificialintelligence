@@ -59,7 +59,5 @@ public class MCEngineArtificialIntelligenceSpigotMC extends JavaPlugin {
      * Called when the plugin is disabled.
      */
     @Override
-    public void onDisable() {
-        getLogger().info("MCEngineArtificialIntelligenceSpigotMC has been disabled.");
-    }
+    public void onDisable() {}
 }
