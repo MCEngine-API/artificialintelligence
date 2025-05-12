@@ -16,5 +16,5 @@ def includeSubprojects(String platform) {
 }
 
 // Include all subprojects for PaperMC and SpigotMC
-def platformModules = ['spigotmc']
+def platformModules = ['spigotmc', 'papermc']
 platformModules.each { includeSubprojects(it) }

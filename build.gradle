@@ -63,6 +63,11 @@ allprojects {
             }
         }
 
+        maven {
+            name = "papermc"
+            url = 'https://repo.papermc.io/repository/maven-public/'
+        }
+
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         maven { url 'https://oss.sonatype.org/content/repositories/central' }
     }
@@ -93,7 +98,7 @@ subprojects {
     }
 
     afterEvaluate {
-        def serverPlatforms = ['spigotmc']
+        def serverPlatforms = ['spigotmc', 'papermc']
         serverPlatforms.each { platform ->
             if (project.path == ":server:${platform}:engine") {
                 dependencies {
@@ -161,7 +166,7 @@ dependencies {
     implementation project(path: ":mcengine-${project.git_repository_name}-api", configuration: 'shadow')
     implementation project(path: ":common", configuration: 'shadow')
 
-    def platformModules = ['spigotmc']
+    def platformModules = ['spigotmc', 'papermc']
     platformModules.each { platform ->
         implementation project(path: ":server:${platform}:engine", configuration: 'shadow')
     }
