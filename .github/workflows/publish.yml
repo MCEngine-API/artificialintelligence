@@ -18,8 +18,10 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Grant execute permission for Gradle
-        run: chmod +x ./gradlew
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v3
+        with:
+          gradle-version: 8.7
 
       - name: Build and Publish
         env:
@@ -31,4 +33,4 @@ jobs:
           GIT_REPOSITORY_TOKEN: ${{ secrets.GIT_REPOSITORY_TOKEN }}
           PROJECT_NAME: ${{ secrets.PROJECT_NAME }}
         run: |
-          ./gradlew clean publish --stacktrace
+          gradle clean publish --stacktrace
