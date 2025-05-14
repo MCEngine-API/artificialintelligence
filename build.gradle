@@ -3,27 +3,6 @@ plugins {
     id 'java'
 }
 
-def loadEnvFile(String path) {
-    def env = [:]
-    def file = file(path)
-    if (file.exists()) {
-        file.eachLine { line ->
-            if (line && line.contains('=') && !line.startsWith('#')) {
-                def (key, value) = line.split('=', 2)
-                env[key.trim()] = value.trim()
-            }
-        }
-    }
-    return env
-}
-
-// 🔁 Load multiple env files in order
-def envFilesToLoad = ['.env', 'git.env']
-def envVars = [:]
-envFilesToLoad.each { envFile ->
-    envVars.putAll(loadEnvFile(envFile))
-}
-
 // Set project version using a property, defaulting to 'unspecified' if not found
 version = project.properties[project.name + '.version'] ?: 'undefined'
 group = 'io.github.mcengine'
