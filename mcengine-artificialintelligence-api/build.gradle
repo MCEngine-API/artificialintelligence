@@ -6,7 +6,9 @@ dependencies {
     compileOnly 'org.spigotmc:spigot-api:1.21.5-R0.1-SNAPSHOT'
 
     // https://mvnrepository.com/artifact/com.google.code.gson/gson
-    implementation 'com.google.code.gson:gson:2.13.1'
+    compileOnly 'com.google.code.gson:gson:2.13.1'
+
+    implementation 'io.github.mcengine:mcengine-api:1.0.0-SNAPSHOT'
 }
 
 shadowJar {

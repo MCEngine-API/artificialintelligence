@@ -49,6 +49,14 @@ allprojects {
 
         maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
         maven { url 'https://oss.sonatype.org/content/repositories/central' }
+
+        maven {
+            url = uri('https://maven.pkg.github.com/MCEngine/mcengine')
+            credentials {
+                username = project.git_user_name ?: 'null'
+                password = project.git_user_token ?: 'null'
+            }
+        }
     }
 }
 
