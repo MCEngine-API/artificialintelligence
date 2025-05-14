@@ -9,6 +9,7 @@ import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificia
 import io.github.mcengine.api.artificialintelligence.database.sqlite.MCEngineArtificialIntelligenceApiDatabaseSQLite;
 import io.github.mcengine.api.artificialintelligence.model.*;
 import io.github.mcengine.api.artificialintelligence.util.*;
+import io.github.mcengine.api.mcengine.util.*;
 
 /**
  * Main API class for MCEngineArtificialIntelligence.
@@ -129,7 +130,7 @@ public class MCEngineArtificialIntelligenceApi {
      * @param token       The access token (nullable).
      */
     public void checkUpdate(String gitPlatform, String org, String repository, String token) {
-        MCEngineArtificialIntelligenceApiUtilUpdate.checkUpdate(plugin, gitPlatform, org, repository, token);
+        MCEngineApiUtilUpdate.checkUpdate(plugin, gitPlatform, org, repository, token);
     }
 
     /**
@@ -137,7 +138,7 @@ public class MCEngineArtificialIntelligenceApi {
      * Uses extension loader to handle AddOn registration.
      */
     private void loadAddOns() {
-        MCEngineArtificialIntelligenceApiUtilExtension.loadExtensions(plugin, "addons", "AddOn");
+        MCEngineApiUtilExtension.loadExtensions(plugin, "addons", "AddOn");
     }
 
     /**
@@ -145,7 +146,7 @@ public class MCEngineArtificialIntelligenceApi {
      * Uses extension loader to handle DLC registration.
      */
     private void loadDLCs() {
-        MCEngineArtificialIntelligenceApiUtilExtension.loadExtensions(plugin, "dlcs", "DLC");
+        MCEngineApiUtilExtension.loadExtensions(plugin, "dlcs", "DLC");
     }
 
     /**

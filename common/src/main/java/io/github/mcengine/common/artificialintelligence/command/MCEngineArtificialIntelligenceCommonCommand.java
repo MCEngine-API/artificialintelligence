@@ -3,7 +3,7 @@ package io.github.mcengine.common.artificialintelligence.command;
 import io.github.mcengine.api.artificialintelligence.MCEngineArtificialIntelligenceApi;
 import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilAi;
-import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilExtension;
+import io.github.mcengine.api.mcengine.util.MCEngineApiUtilExtension;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -263,7 +263,7 @@ public class MCEngineArtificialIntelligenceCommonCommand implements CommandExecu
     private boolean handleExtensionList(Player player, String type) {
         type = type.toLowerCase();
         String folder = type.equalsIgnoreCase("addon") ? "addons" : "dlcs";
-        List<String> extensions = MCEngineArtificialIntelligenceApiUtilExtension.getLoadedExtensionFileNames(
+        List<String> extensions = MCEngineApiUtilExtension.getLoadedExtensionFileNames(
                 plugin,
                 folder
         );
