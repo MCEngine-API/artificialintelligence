@@ -118,7 +118,7 @@ public class MCEngineArtificialIntelligenceApiUtilUpdate {
 
                     updateMessages.forEach(msg -> Bukkit.getConsoleSender().sendMessage(msg));
                 } else {
-                    logger.info("[MCEngineArtificialIntelligence] No updates found. You are running the latest version.");
+                    logger.info("No updates found. You are running the latest version.");
                 }
             } catch (Exception ex) {
                 logger.warning("[UpdateCheck] [" + (apiUrl.contains("github") ? "GitHub" : "GitLab") + "] Could not check updates: " + ex.getMessage());
