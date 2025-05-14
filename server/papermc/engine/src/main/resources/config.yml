@@ -13,10 +13,6 @@ token:
   # Must have a length of 16 characters
   secretKey:
 
-# Token for checking plugin version from GitHub releases
-gtihub:
-  token:
-
 ai:
   custom:
     # You can define multiple servers under "custom"
