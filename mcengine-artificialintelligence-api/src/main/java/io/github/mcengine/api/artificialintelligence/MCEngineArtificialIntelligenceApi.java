@@ -1,7 +1,6 @@
 package io.github.mcengine.api.artificialintelligence;
 
 import org.bukkit.plugin.Plugin;
-import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.Map;
 
@@ -46,10 +45,7 @@ public class MCEngineArtificialIntelligenceApi {
      */
     public MCEngineArtificialIntelligenceApi(Plugin plugin) {
         instance = this;
-        new Metrics(plugin, 25556);
         this.plugin = plugin;
-        loadAddOns();
-        loadDLCs();
 
         // Initialize database based on type
         String dbType = plugin.getConfig().getString("database.type", "sqlite").toLowerCase();
@@ -59,37 +55,6 @@ public class MCEngineArtificialIntelligenceApi {
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported database type: " + dbType);
-        }
-
-        // Load models for built-in platforms
-        String[] platforms = { "deepseek", "openai", "openrouter" };
-        for (String platform : platforms) {
-            String modelsKey = "ai." + platform + ".models";
-            if (plugin.getConfig().isConfigurationSection(modelsKey)) {
-                ConfigurationSection section = plugin.getConfig().getConfigurationSection(modelsKey);
-                for (String key : section.getKeys(false)) {
-                    String modelName = section.getString(key);
-                    if (modelName != null && !modelName.equalsIgnoreCase("null")) {
-                        registerModel(platform, modelName);
-                    }
-                }
-            }
-        }
-
-        // Load models from ai.custom.{server}.models
-        if (plugin.getConfig().isConfigurationSection("ai.custom")) {
-            for (String server : plugin.getConfig().getConfigurationSection("ai.custom").getKeys(false)) {
-                String modelsKey = "ai.custom." + server + ".models";
-                if (plugin.getConfig().isConfigurationSection(modelsKey)) {
-                    ConfigurationSection section = plugin.getConfig().getConfigurationSection(modelsKey);
-                    for (String key : section.getKeys(false)) {
-                        String modelName = section.getString(key);
-                        if (modelName != null && !modelName.equalsIgnoreCase("null")) {
-                            registerModel("customurl", server + ":" + modelName);
-                        }
-                    }
-                }
-            }
         }
     }
 
@@ -131,22 +96,6 @@ public class MCEngineArtificialIntelligenceApi {
      */
     public void checkUpdate(String gitPlatform, String org, String repository, String token) {
         MCEngineApiUtilUpdate.checkUpdate(plugin, gitPlatform, org, repository, token);
-    }
-
-    /**
-     * Loads all addons from the "addons" directory.
-     * Uses extension loader to handle AddOn registration.
-     */
-    private void loadAddOns() {
-        MCEngineApiUtilExtension.loadExtensions(plugin, "addons", "AddOn");
-    }
-
-    /**
-     * Loads all DLCs from the "dlcs" directory.
-     * Uses extension loader to handle DLC registration.
-     */
-    private void loadDLCs() {
-        MCEngineApiUtilExtension.loadExtensions(plugin, "dlcs", "DLC");
     }
 
     /**
