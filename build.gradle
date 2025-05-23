@@ -64,17 +64,7 @@ subprojects {
     apply plugin: 'java'
     apply plugin: 'com.github.johnrengelman.shadow'
 
-    def versionPropertyKey = project.path.replace(':', '-')
-    if (versionPropertyKey.startsWith('-')) {
-        versionPropertyKey = versionPropertyKey.substring(1)
-    }
-
-    if (!versionPropertyKey.contains('-')) {
-        versionPropertyKey = project.name
-    }
-
-    versionPropertyKey += '.version'
-    version = project.properties[versionPropertyKey] ?: 'undefined'
+    version = project.properties[project.name + '.version'] ?: 'undefined'
 
     tasks.named('jar').configure {
         enabled = false
@@ -82,25 +72,6 @@ subprojects {
 
     tasks.named('shadowJar').configure {
         archiveClassifier = null
-    }
-
-    afterEvaluate {
-        def serverPlatforms = ['spigotmc', 'papermc']
-        serverPlatforms.each { platform ->
-            if (project.path == ":server:${platform}:engine") {
-                dependencies {
-                    def platformDir = rootProject.file("server/${platform}")
-                    if (platformDir.exists()) {
-                        platformDir.eachDir { versionDir ->
-                            if (versionDir.name != 'engine') {
-                                def versionPath = ":server:${platform}:${versionDir.name}"
-                                implementation project(path: versionPath, configuration: 'shadow')
-                            }
-                        }
-                    }
-                }
-            }
-        }
     }
 
     if (project.path == ":mcengine-${project.git_repository_name}-api") {
@@ -151,12 +122,6 @@ subprojects {
 
 dependencies {
     implementation project(path: ":mcengine-${project.git_repository_name}-api", configuration: 'shadow')
-    implementation project(path: ":common", configuration: 'shadow')
-
-    def platformModules = ['spigotmc', 'papermc']
-    platformModules.each { platform ->
-        implementation project(path: ":server:${platform}:engine", configuration: 'shadow')
-    }
 }
 
 shadowJar {
