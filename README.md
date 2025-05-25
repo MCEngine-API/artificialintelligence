@@ -2,8 +2,8 @@
 
 # ℹ️ Information
 
-[LICENSE](https://github.com/MCEngine/.github/blob/master/artificialintelligence/LICENSE)
-[README.md](https://github.com/MCEngine/.github/blob/master/artificialintelligence/README.md)
+[LICENSE](https://github.com/MCEngine/.github/blob/master/artificialintelligence/api/LICENSE)
+[README.md](https://github.com/MCEngine/.github/blob/master/artificialintelligence/api/README.md)
 
 | Team | Role | Information |
 | --- | --- | --- |
