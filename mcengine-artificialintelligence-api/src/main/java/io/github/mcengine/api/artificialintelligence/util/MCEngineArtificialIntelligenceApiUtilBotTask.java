@@ -8,7 +8,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Async task that sends player input to the AI API and sends the response back.
- * Can be reused by any addon that uses ChatBotManager.
+ * Can be reused by any addon that uses MCEngineArtificialIntelligenceApiUtilBotManager.
  */
 public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable {
 
@@ -42,13 +42,13 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
 
         try {
             // Full conversation used as input
-            String fullPrompt = ChatBotManager.get(player) + "[Player]: " + message;
+            String fullPrompt = MCEngineArtificialIntelligenceApiUtilBotManager.get(player) + "[Player]: " + message;
             response = api.getResponse(platform, model, fullPrompt);
         } catch (Exception e) {
             Bukkit.getScheduler().runTask(plugin, () ->
                 player.sendMessage("§c[ChatBot] Failed: " + e.getMessage())
             );
-            ChatBotManager.setWaiting(player, false);
+            MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, false);
             return;
         }
 
@@ -57,9 +57,9 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
 
         Bukkit.getScheduler().runTask(plugin, () -> {
             player.sendMessage("§e[ChatBot]§r " + response);
-            ChatBotManager.append(player, playerPrompt);
-            ChatBotManager.append(player, aiReply);
-            ChatBotManager.setWaiting(player, false);
+            MCEngineArtificialIntelligenceApiUtilBotManager.append(player, playerPrompt);
+            MCEngineArtificialIntelligenceApiUtilBotManager.append(player, aiReply);
+            MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, false);
         });
     }
 }
