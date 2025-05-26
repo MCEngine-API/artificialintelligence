@@ -74,7 +74,7 @@ subprojects {
         archiveClassifier = null
     }
 
-    if (project.path == ":mcengine-${project.git_repository_name}-api") {
+    if (project.path == ":mcengine-artificialintelligence-api") {
         apply plugin: 'maven-publish'
 
         publishing {
@@ -121,7 +121,7 @@ subprojects {
 }
 
 dependencies {
-    implementation project(path: ":mcengine-${project.git_repository_name}-api", configuration: 'shadow')
+    implementation project(path: ":mcengine-artificialintelligence-api", configuration: 'shadow')
 }
 
 shadowJar {
