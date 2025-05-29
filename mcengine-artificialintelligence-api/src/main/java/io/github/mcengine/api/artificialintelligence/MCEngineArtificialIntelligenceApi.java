@@ -176,4 +176,14 @@ public class MCEngineArtificialIntelligenceApi {
     public String getResponse(String platform, String model, String token, String message) {
         return getAi(platform, model).getResponse(token, message);
     }
+
+    /**
+     * Sets the waiting status of a player in an AI conversation.
+     *
+     * @param player  The player.
+     * @param waiting Whether the player is waiting.
+     */
+    public void setWaiting(Player player, boolean waiting) {
+        MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, waiting);
+    }
 }
