@@ -178,6 +178,19 @@ public class MCEngineArtificialIntelligenceApi {
     }
 
     /**
+     * Executes an AI bot task asynchronously with the given input.
+     *
+     * @param player   The player sending the message.
+     * @param platform The AI platform name.
+     * @param model    The AI model name.
+     * @param message  The message to send.
+     */
+    public void runBotTask(Player player, String platform, String model, String message) {
+        new MCEngineArtificialIntelligenceApiUtilBotTask(plugin, player, platform, model, message)
+            .runTaskAsynchronously(plugin);
+    }
+
+    /**
      * Sets the waiting status of a player in an AI conversation.
      *
      * @param player  The player.
