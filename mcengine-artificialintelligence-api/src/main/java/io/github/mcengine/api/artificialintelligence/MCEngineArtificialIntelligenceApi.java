@@ -1,5 +1,6 @@
 package io.github.mcengine.api.artificialintelligence;
 
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.util.Map;
@@ -83,19 +84,6 @@ public class MCEngineArtificialIntelligenceApi {
      */
     public IMCEngineArtificialIntelligenceApiDatabase getDB() {
         return db;
-    }
-
-    /**
-     * Checks for updates by querying the specified Git platform.
-     * Logs to console if a new version is available.
-     *
-     * @param gitPlatform The platform to query ("github" or "gitlab").
-     * @param org         The organization or user.
-     * @param repository  The repository name.
-     * @param token       The access token (nullable).
-     */
-    public void checkUpdate(String gitPlatform, String org, String repository, String token) {
-        MCEngineApiUtilUpdate.checkUpdate(plugin, gitPlatform, org, repository, token);
     }
 
     /**

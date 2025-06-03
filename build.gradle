@@ -55,7 +55,7 @@ allprojects {
         maven {
             url = uri('https://maven.pkg.github.com/MCEngine/mcengine')
             credentials {
-                username = project.git_user_name ?: 'null'
+                username = project.user_git_name
                 password = project.user_github_token ?: project.repository_token ?: project.organization_token
             }
         }
@@ -85,7 +85,7 @@ subprojects {
                     name = 'GitHubPackages'
                     url = uri("https://maven.pkg.github.com/${project.organization_name}/${project.repository_name}")
                     credentials {
-                        username = project.git_user_name
+                        username = project.user_git_name
                         password = project.user_github_token ?: project.repository_token ?: project.organization_token
                     }
                 }
