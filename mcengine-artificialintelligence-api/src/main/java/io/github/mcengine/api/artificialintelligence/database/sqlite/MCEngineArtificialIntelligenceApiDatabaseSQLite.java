@@ -19,9 +19,12 @@ public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngin
     /** The JDBC SQLite database URL. */
     private final String databaseUrl;
 
+    /** SQLite persistent database connection. */
+    private final Connection conn;
+
     /**
      * Constructs a new SQLite database handler from plugin config.
-     * Path is retrieved from config key: database.sqlite.path
+     * Path is retrieved from config key: database.sqlite.path.
      *
      * @param plugin The Bukkit plugin instance.
      */
@@ -44,6 +47,16 @@ public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngin
         }
 
         this.databaseUrl = "jdbc:sqlite:" + dbFile.getAbsolutePath();
+
+        Connection tempConn = null;
+        try {
+            tempConn = DriverManager.getConnection(databaseUrl);
+        } catch (SQLException e) {
+            plugin.getLogger().warning("Failed to open SQLite connection: " + e.getMessage());
+            e.printStackTrace();
+        }
+        this.conn = tempConn;
+
         createTable();
     }
 
@@ -62,12 +75,22 @@ public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngin
             );
         """;
 
-        try (Connection conn = DriverManager.getConnection(databaseUrl);
-             Statement stmt = conn.createStatement()) {
+        try (Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         } catch (SQLException e) {
+            plugin.getLogger().warning("Failed to create SQLite table: " + e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Gets the persistent SQLite database connection.
+     *
+     * @return The active {@link Connection} to the SQLite database.
+     */
+    @Override
+    public Connection getDBConnection() {
+        return conn;
     }
 
     /**
@@ -76,8 +99,8 @@ public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngin
      * @param playerUuid The UUID of the player.
      * @param platform   The AI platform.
      * @param token      The raw (unencrypted) token to store.
-     * @return Status message of the operation.
      */
+    @Override
     public void setPlayerToken(String playerUuid, String platform, String token) {
         String encryptedToken = MCEngineArtificialIntelligenceApiUtilToken.encryptToken(token);
 
@@ -87,16 +110,15 @@ public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngin
             ON CONFLICT(player_uuid, platform) DO UPDATE SET token = excluded.token;
         """;
 
-        try (Connection conn = DriverManager.getConnection(databaseUrl);
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, playerUuid);
             stmt.setString(2, platform);
             stmt.setString(3, encryptedToken);
             stmt.executeUpdate();
             plugin.getLogger().info("Token saved successfully.");
         } catch (SQLException e) {
+            plugin.getLogger().warning("Failed to save token: " + e.getMessage());
             e.printStackTrace();
-            plugin.getLogger().warning("Failed to save token.");
         }
     }
 
@@ -107,18 +129,19 @@ public class MCEngineArtificialIntelligenceApiDatabaseSQLite implements IMCEngin
      * @param platform   The AI platform.
      * @return The encrypted token or null if not found.
      */
+    @Override
     public String getPlayerToken(String playerUuid, String platform) {
         String sql = "SELECT token FROM artificialintelligence WHERE player_uuid = ? AND platform = ?";
 
-        try (Connection conn = DriverManager.getConnection(databaseUrl);
-            PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, playerUuid);
             stmt.setString(2, platform);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getString("token"); // return ENCRYPTED token directly
+                return rs.getString("token");
             }
         } catch (SQLException e) {
+            plugin.getLogger().warning("Failed to retrieve token: " + e.getMessage());
             e.printStackTrace();
         }
         return null;

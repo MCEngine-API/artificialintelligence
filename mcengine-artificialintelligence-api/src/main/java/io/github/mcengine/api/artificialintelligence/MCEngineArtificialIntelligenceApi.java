@@ -3,6 +3,7 @@ package io.github.mcengine.api.artificialintelligence;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.sql.Connection;
 import java.util.Map;
 
 import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
@@ -84,6 +85,18 @@ public class MCEngineArtificialIntelligenceApi {
      */
     public IMCEngineArtificialIntelligenceApiDatabase getDB() {
         return db;
+    }
+
+    /**
+     * Retrieves the active database connection used by the AI plugin.
+     * <p>
+     * This delegates to the underlying database implementation, such as SQLite or other supported types.
+     * Useful for executing custom SQL queries or diagnostics externally.
+     *
+     * @return The {@link Connection} instance for the configured database.
+     */
+    public Connection getDBConnection() {
+        return db.getDBConnection();
     }
 
     /**
