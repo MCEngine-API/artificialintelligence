@@ -1,17 +1,11 @@
-<div align="center">
+# 🚀 MCEngine Artificial Intelligence API
 
-# ℹ️ Information
+This repository serves as the Artificial Intelligence API for MCEngine projects.
 
-[`README`](https://github.com/MCEngine/.github/blob/master/artificialintelligence/api/README.md)
+Unlike typical shared libraries, each project will use `implementation` instead of `compileOnly`.  
+This ensures that each project can use the API directly without depending on this repository at runtime.
 
-| Team | Role | Information |
-| --- | --- | --- |
-| [`Global`](https://github.com/orgs/MCEngine/teams/global) | Admin, Developer | Owner of project, Developer of the project |
-
-# Addition Contents
-
-[**AddOn**](https://github.com/MCEngine-AddOn)
-[**DLC**](https://github.com/MCEngine-DLC)
+📦 **Usage Tip**: Add this as an `implementation` dependency in your Gradle project to make full use of the API.
 
 # 👥 Members
 
