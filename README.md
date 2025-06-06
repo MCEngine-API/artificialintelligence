@@ -7,9 +7,11 @@ This ensures that each project can use the API directly without depending on thi
 
 📦 **Usage Tip**: Add this as an `implementation` dependency in your Gradle project to make full use of the API.
 
+<div align="center">
+
 # 👥 Members
 
-<table align="center">
+<table>
   <tr>
     <td align="center" width="150">
       <a href="https://github.com/JetsadaWijit">
