@@ -186,8 +186,8 @@ public class MCEngineArtificialIntelligenceApi {
      * @param model    The AI model name.
      * @param message  The message to send.
      */
-    public void runBotTask(Player player, String platform, String model, String message) {
-        new MCEngineArtificialIntelligenceApiUtilBotTask(plugin, player, platform, model, message)
+    public void runBotTask(Player player, String tokenType, String platform, String model, String message) {
+        new MCEngineArtificialIntelligenceApiUtilBotTask(plugin, tokenType, player, platform, model, message)
             .runTaskAsynchronously(plugin);
     }
 

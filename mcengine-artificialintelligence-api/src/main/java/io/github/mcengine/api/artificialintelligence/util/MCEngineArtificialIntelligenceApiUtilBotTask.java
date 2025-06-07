@@ -13,6 +13,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable {
 
     private final Plugin plugin;
+    private final String tokenType;
     private final Player player;
     private final String platform;
     private final String model;
@@ -21,14 +22,16 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
     /**
      * Constructs a new ChatBotTask.
      *
-     * @param plugin   The plugin instance.
-     * @param player   The player in conversation.
-     * @param platform The AI platform to use.
-     * @param model    The model name to use.
-     * @param message  The message sent by the player.
+     * @param plugin    The plugin instance.
+     * @param tokenType Type of token to use ("server" or "player").
+     * @param player    The player in conversation.
+     * @param platform  The AI platform to use.
+     * @param model     The model name to use.
+     * @param message   The message sent by the player.
      */
-    public MCEngineArtificialIntelligenceApiUtilBotTask(Plugin plugin, Player player, String platform, String model, String message) {
+    public MCEngineArtificialIntelligenceApiUtilBotTask(Plugin plugin, String tokenType, Player player, String platform, String model, String message) {
         this.plugin = plugin;
+        this.tokenType = tokenType;
         this.player = player;
         this.platform = platform;
         this.model = model;
@@ -43,7 +46,18 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
         try {
             // Full conversation used as input
             String fullPrompt = MCEngineArtificialIntelligenceApiUtilBotManager.get(player) + "[Player]: " + message;
-            response = api.getResponse(platform, model, fullPrompt);
+
+            if ("server".equalsIgnoreCase(tokenType)) {
+                response = api.getResponse(platform, model, fullPrompt);
+            } else if ("player".equalsIgnoreCase(tokenType)) {
+                String token = api.getPlayerToken(player.getUniqueId().toString(), platform);
+                if (token == null || token.isEmpty()) {
+                    throw new IllegalStateException("No token found for player.");
+                }
+                response = api.getResponse(platform, model, token, fullPrompt);
+            } else {
+                throw new IllegalArgumentException("Unknown tokenType: " + tokenType);
+            }
         } catch (Exception e) {
             Bukkit.getScheduler().runTask(plugin, () ->
                 player.sendMessage("§c[ChatBot] Failed: " + e.getMessage())
