@@ -200,4 +200,14 @@ public class MCEngineArtificialIntelligenceApi {
     public void setWaiting(Player player, boolean waiting) {
         MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, waiting);
     }
+
+    /**
+     * Checks if the specified player is currently waiting for an AI response.
+     *
+     * @param player The player to check.
+     * @return true if waiting; false otherwise.
+     */
+    public boolean checkWaitingPlayer(Player player) {
+        return MCEngineArtificialIntelligenceApiUtilBotManager.isWaiting(player);
+    }
 }
