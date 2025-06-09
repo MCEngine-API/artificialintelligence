@@ -41,6 +41,18 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
     @Override
     public void run() {
         MCEngineArtificialIntelligenceApi api = MCEngineArtificialIntelligenceApi.getApi();
+
+        // If player is already waiting, ignore new task
+        if (api.checkWaitingPlayer(player)) {
+            Bukkit.getScheduler().runTask(plugin, () ->
+                player.sendMessage("§c[ChatBot] Please wait for the current response to finish.")
+            );
+            return;
+        }
+
+        // Mark as waiting
+        MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, true);
+
         String response;
 
         try {
