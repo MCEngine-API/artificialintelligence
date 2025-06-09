@@ -8,22 +8,52 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 /**
  * Async task that sends player input to the AI API and sends the response back.
- * Can be reused by any addon that uses MCEngineArtificialIntelligenceApiUtilBotManager.
+ * <p>
+ * This task handles:
+ * <ul>
+ *   <li>Waiting-state management per player.</li>
+ *   <li>Token selection (server or player-based).</li>
+ *   <li>Prompt formatting and response dispatching.</li>
+ * </ul>
+ * Can be reused by any addon that uses {@link MCEngineArtificialIntelligenceApiUtilBotManager}.
  */
 public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable {
 
+    /**
+     * The plugin instance running the task.
+     */
     private final Plugin plugin;
+
+    /**
+     * The token type to use, either "server" or "player".
+     */
     private final String tokenType;
+
+    /**
+     * The player who initiated the request.
+     */
     private final Player player;
+
+    /**
+     * The AI platform to interact with (e.g., openai, deepseek).
+     */
     private final String platform;
+
+    /**
+     * The AI model name to use for the response.
+     */
     private final String model;
+
+    /**
+     * The message content sent by the player.
+     */
     private final String message;
 
     /**
-     * Constructs a new ChatBotTask.
+     * Constructs a new bot task to interact with the AI.
      *
      * @param plugin    The plugin instance.
-     * @param tokenType Type of token to use ("server" or "player").
+     * @param tokenType The type of token to use ("server" or "player").
      * @param player    The player in conversation.
      * @param platform  The AI platform to use.
      * @param model     The model name to use.
