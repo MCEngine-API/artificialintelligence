@@ -1,7 +1,9 @@
 package io.github.mcengine.api.artificialintelligence.util;
 
 import io.github.mcengine.api.artificialintelligence.MCEngineArtificialIntelligenceApi;
+import io.github.mcengine.api.artificialintelligence.model.IMCEngineArtificialIntelligenceApiModel;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -70,23 +72,30 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
 
     @Override
     public void run() {
-        MCEngineArtificialIntelligenceApi api = MCEngineArtificialIntelligenceApi.getApi();
-
-        // If player is already waiting, ignore new task
-        if (api.checkWaitingPlayer(player)) {
-            Bukkit.getScheduler().runTask(plugin, () ->
-                player.sendMessage("§c[ChatBot] Please wait for the current response to finish.")
-            );
-            return;
-        }
-
-        // Mark as waiting
-        MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, true);
-
-        String response;
-
         try {
-            // Full conversation used as input
+            MCEngineArtificialIntelligenceApi api = MCEngineArtificialIntelligenceApi.getApi();
+
+            // If player is already waiting, ignore new task
+            if (api.checkWaitingPlayer(player)) {
+                Bukkit.getScheduler().runTask(plugin, () ->
+                    player.sendMessage(ChatColor.RED + "⏳ Please wait for the AI to respond before sending another message.")
+                );
+                return;
+            }
+
+            // Validate platform/model exists
+            IMCEngineArtificialIntelligenceApiModel ai = api.getAi(platform, model);
+            if (ai == null) {
+                Bukkit.getScheduler().runTask(plugin, () ->
+                    player.sendMessage("Invalid AI model or platform: " + platform + "/" + model)
+                );
+                return;
+            }
+
+            // Mark as waiting
+            MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, true);
+
+            String response;
             String fullPrompt = MCEngineArtificialIntelligenceApiUtilBotManager.get(player) + "[Player]: " + message;
 
             if ("server".equalsIgnoreCase(tokenType)) {
@@ -100,22 +109,23 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
             } else {
                 throw new IllegalArgumentException("Unknown tokenType: " + tokenType);
             }
+
+            String playerPrompt = "[Player]: " + message;
+            String aiReply = "[Ai]: " + response;
+
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                player.sendMessage("§e[ChatBot]§r " + response);
+                MCEngineArtificialIntelligenceApiUtilBotManager.append(player, playerPrompt);
+                MCEngineArtificialIntelligenceApiUtilBotManager.append(player, aiReply);
+                MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, false);
+            });
+
         } catch (Exception e) {
+            e.printStackTrace();
             Bukkit.getScheduler().runTask(plugin, () ->
-                player.sendMessage("§c[ChatBot] Failed: " + e.getMessage())
+                player.sendMessage("§c[ChatBot] Unexpected error: " + e.getMessage())
             );
             MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, false);
-            return;
         }
-
-        String playerPrompt = "[Player]: " + message;
-        String aiReply = "[Ai]: " + response;
-
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            player.sendMessage("§e[ChatBot]§r " + response);
-            MCEngineArtificialIntelligenceApiUtilBotManager.append(player, playerPrompt);
-            MCEngineArtificialIntelligenceApiUtilBotManager.append(player, aiReply);
-            MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, false);
-        });
     }
 }
