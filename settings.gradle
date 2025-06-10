@@ -1,7 +1,1 @@
 rootProject.name = 'mcengine-artificialintelligence'
-
-// Define base directories for subprojects
-def coreProjects = ['mcengine-artificialintelligence-api']
-coreProjects.each {
-    include ":$it"
-}

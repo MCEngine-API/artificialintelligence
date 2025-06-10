@@ -1,17 +1,19 @@
 plugins {
-    id 'com.github.johnrengelman.shadow' version '8.1.1'
     id 'java'
+    id 'com.github.johnrengelman.shadow' version '8.1.1'
+    id 'maven-publish'
 }
 
-// Set project version using a property, defaulting to 'unspecified' if not found
+// Set project version using a property, defaulting to 'undefined' if not found
 version = project.properties[project.name + '.version'] ?: 'undefined'
 group = 'io.github.mcengine'
+
+def mcengineApiVersion = findProperty('mcengine-api.version') ?: 'undefined'
+def spigotmcApiVersion = findProperty('spigotmc-api.version') ?: 'undefined'
 
 ext {
     // User
     user_git_name = System.getenv('USER_GIT_NAME') ?: 'null'
-
-    // GitHub
     user_github_token = System.getenv('USER_GITHUB_TOKEN') ?: ''
 
     // Organization
@@ -22,106 +24,43 @@ ext {
     repository_name = System.getenv('REPOSITORY_NAME') ?: 'artificialintelligence-api'
     repository_token = System.getenv('REPOSITORY_TOKEN') ?: 'null'
 
-    /* Project Information */
+    // Project Information
     jarName = System.getenv('PROJECT_NAME') ?: 'MCEngineArtificialIntelligence'
 }
 
-allprojects {
-    group = 'io.github.mcengine'
+repositories {
+    mavenCentral()
+    mavenLocal()
 
-    apply plugin: 'java'
-    apply plugin: 'com.github.johnrengelman.shadow'
-
-    repositories {
-        mavenCentral()
-        mavenLocal()
-
-        maven {
-            url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots'
-            content {
-                includeGroup 'org.bukkit'
-                includeGroup 'org.spigotmc'
-            }
-        }
-
-        maven {
-            name = "papermc"
-            url = 'https://repo.papermc.io/repository/maven-public/'
-        }
-
-        maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
-        maven { url 'https://oss.sonatype.org/content/repositories/central' }
-
-        maven {
-            url = uri('https://maven.pkg.github.com/MCEngine/mcengine-api')
-            credentials {
-                username = project.user_git_name
-                password = project.user_github_token ?: project.repository_token ?: project.organization_token
-            }
+    maven {
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots'
+        content {
+            includeGroup 'org.bukkit'
+            includeGroup 'org.spigotmc'
         }
     }
-}
 
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'com.github.johnrengelman.shadow'
-
-    version = project.properties[project.name + '.version'] ?: 'undefined'
-
-    tasks.named('jar').configure {
-        enabled = false
+    maven {
+        name = "papermc"
+        url = 'https://repo.papermc.io/repository/maven-public/'
     }
 
-    tasks.named('shadowJar').configure {
-        archiveClassifier = null
-    }
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url = 'https://oss.sonatype.org/content/repositories/central' }
 
-    if (project.path == ":mcengine-artificialintelligence-api") {
-        apply plugin: 'maven-publish'
-
-        publishing {
-            repositories {
-                maven {
-                    name = 'GitHubPackages'
-                    url = uri("https://maven.pkg.github.com/${project.organization_name}/${project.repository_name}")
-                    credentials {
-                        username = project.user_git_name
-                        password = project.user_github_token ?: project.repository_token ?: project.organization_token
-                    }
-                }
-            }
-            publications {
-                mavenJava(MavenPublication) {
-                    artifact(tasks.named('shadowJar').get())
-
-                    pom {
-                        name.set(project.jarName)
-                        description.set("The ${project.jarName} API is designed for use by addons.")
-                        url.set("https://github.com/${project.organization_name}/${project.repository_name}")
-
-                        scm {
-                            connection.set("scm:git:git://github.com/${project.organization_name}/${project.repository_name}.git")
-                            developerConnection.set("scm:git:ssh://github.com:${project.organization_name}/${project.repository_name}.git")
-                            url.set("https://github.com/${project.organization_name}/${project.repository_name}")
-                        }
-
-                        developers {
-                            developer {
-                                id.set('jetsadawijit')
-                                name.set('Jetsada Wijit')
-                                email.set('jetsadawijit@outlook.com')
-                                url.set('https://jetsadawijit.github.io')
-                            }
-                        }
-                    }
-                }
-            }
+    maven {
+        url = uri("https://maven.pkg.github.com/MCEngine/mcengine-api")
+        credentials {
+            username = project.user_git_name
+            password = project.user_github_token ?: project.repository_token ?: project.organization_token
         }
     }
 }
 
 dependencies {
-    implementation project(path: ":mcengine-artificialintelligence-api", configuration: 'shadow')
+    implementation "io.github.mcengine:mcengine-api:$mcengineApiVersion"
+    compileOnly 'com.google.code.gson:gson:2.13.1'
+    compileOnly "org.spigotmc:spigot-api:$spigotmcApiVersion"
 }
 
 shadowJar {
@@ -132,6 +71,46 @@ shadowJar {
 
 tasks.named('jar').configure {
     enabled = false
+}
+
+publishing {
+    repositories {
+        maven {
+            name = 'GitHubPackages'
+            url = uri("https://maven.pkg.github.com/${project.organization_name}/${project.repository_name}")
+            credentials {
+                username = project.user_git_name
+                password = project.user_github_token ?: project.repository_token ?: project.organization_token
+            }
+        }
+    }
+    publications {
+        mavenJava(MavenPublication) {
+            artifact tasks.named('shadowJar').get()
+            artifactId = 'mcengine-artificialintelligence-api'
+
+            pom {
+                name.set(project.jarName)
+                description.set("The ${project.jarName} API is designed for use by addons.")
+                url.set("https://github.com/${project.organization_name}/${project.repository_name}")
+
+                scm {
+                    connection.set("scm:git:git://github.com/${project.organization_name}/${project.repository_name}.git")
+                    developerConnection.set("scm:git:ssh://github.com:${project.organization_name}/${project.repository_name}.git")
+                    url.set("https://github.com/${project.organization_name}/${project.repository_name}")
+                }
+
+                developers {
+                    developer {
+                        id.set('jetsadawijit')
+                        name.set('Jetsada Wijit')
+                        email.set('jetsadawijit@outlook.com')
+                        url.set('https://jetsadawijit.github.io')
+                    }
+                }
+            }
+        }
+    }
 }
 
 build.dependsOn(shadowJar)
