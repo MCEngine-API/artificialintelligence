@@ -8,21 +8,18 @@ plugins {
 version = project.properties[project.name + '.version'] ?: 'undefined'
 group = 'io.github.mcengine'
 
-def mcengineApiVersion = findProperty('mcengine-api.version') ?: 'undefined'
-def spigotmcApiVersion = findProperty('spigotmc-api.version') ?: 'undefined'
-
 ext {
     // User
-    user_git_name = System.getenv('USER_GIT_NAME') ?: 'null'
-    user_github_token = System.getenv('USER_GITHUB_TOKEN') ?: ''
+    user_git_name = System.getenv('USER_GIT_NAME')
+    user_github_token = System.getenv('USER_GITHUB_TOKEN')
 
     // Organization
     organization_name = System.getenv('ORGANIZATION_NAME') ?: 'MCEngine'
-    organization_token = System.getenv('ORGANIZATION_TOKEN') ?: 'null'
+    organization_token = System.getenv('ORGANIZATION_TOKEN')
 
     // Repository
     repository_name = System.getenv('REPOSITORY_NAME') ?: 'artificialintelligence-api'
-    repository_token = System.getenv('REPOSITORY_TOKEN') ?: 'null'
+    repository_token = System.getenv('REPOSITORY_TOKEN')
 
     // Project Information
     jarName = System.getenv('PROJECT_NAME') ?: 'MCEngineArtificialIntelligence'
@@ -58,9 +55,8 @@ repositories {
 }
 
 dependencies {
-    implementation "io.github.mcengine:mcengine-api:$mcengineApiVersion"
     compileOnly 'com.google.code.gson:gson:2.13.1'
-    compileOnly "org.spigotmc:spigot-api:$spigotmcApiVersion"
+    compileOnly 'org.spigotmc:spigot-api:1.21.5-R0.1-SNAPSHOT'
 }
 
 shadowJar {
