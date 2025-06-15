@@ -7,7 +7,7 @@ import java.sql.Connection;
 import java.util.Map;
 
 import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
-import io.github.mcengine.api.artificialintelligence.database.sqlite.MCEngineArtificialIntelligenceApiDatabaseSQLite;
+import io.github.mcengine.api.artificialintelligence.database.sqlite.MCEngineArtificialIntelligenceApiDBSQLite;
 import io.github.mcengine.api.artificialintelligence.model.*;
 import io.github.mcengine.api.artificialintelligence.util.*;
 
@@ -53,7 +53,7 @@ public class MCEngineArtificialIntelligenceApi {
         String dbType = plugin.getConfig().getString("database.type", "sqlite").toLowerCase();
         switch (dbType) {
             case "sqlite":
-                this.db = new MCEngineArtificialIntelligenceApiDatabaseSQLite(plugin);
+                this.db = new MCEngineArtificialIntelligenceApiDBSQLite(plugin);
                 break;
             default:
                 throw new IllegalArgumentException("Unsupported database type: " + dbType);
