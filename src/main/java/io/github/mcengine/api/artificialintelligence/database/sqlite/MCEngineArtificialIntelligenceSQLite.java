@@ -1,6 +1,6 @@
 package io.github.mcengine.api.artificialintelligence.database.sqlite;
 
-import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
+import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceDB;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilToken;
 import org.bukkit.plugin.Plugin;
 
@@ -11,7 +11,7 @@ import java.sql.*;
  * SQLite implementation for the AI API database.
  * Handles encrypted player token storage and retrieval.
  */
-public class MCEngineArtificialIntelligenceApiDBSQLite implements IMCEngineArtificialIntelligenceApiDatabase {
+public class MCEngineArtificialIntelligenceSQLite implements IMCEngineArtificialIntelligenceDB {
 
     /** The Bukkit plugin instance. */
     private final Plugin plugin;
@@ -28,7 +28,7 @@ public class MCEngineArtificialIntelligenceApiDBSQLite implements IMCEngineArtif
      *
      * @param plugin The Bukkit plugin instance.
      */
-    public MCEngineArtificialIntelligenceApiDBSQLite(Plugin plugin) {
+    public MCEngineArtificialIntelligenceSQLite(Plugin plugin) {
         this.plugin = plugin;
         String fileName = plugin.getConfig().getString("database.sqlite.path", "artificialintelligence.db");
         File dbFile = new File(plugin.getDataFolder(), fileName);

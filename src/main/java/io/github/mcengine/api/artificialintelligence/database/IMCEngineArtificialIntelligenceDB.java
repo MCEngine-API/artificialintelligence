@@ -5,7 +5,7 @@ import java.sql.Connection;
 /**
  * Interface for AI API database operations related to storing and retrieving user tokens.
  */
-public interface IMCEngineArtificialIntelligenceApiDatabase {
+public interface IMCEngineArtificialIntelligenceDB {
 
     /**
      * Gets the database connection.

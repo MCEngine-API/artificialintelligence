@@ -3,7 +3,7 @@ package io.github.mcengine.api.artificialintelligence.database.mongodb;
 import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.ReplaceOptions;
-import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
+import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceDB;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilToken;
 import org.bson.Document;
 import org.bukkit.plugin.Plugin;
@@ -14,7 +14,7 @@ import java.sql.Connection;
  * MongoDB implementation of the AI API database.
  * Stores and retrieves encrypted player tokens in a document collection.
  */
-public class MCEngineArtificialIntelligenceApiDBMongoDB implements IMCEngineArtificialIntelligenceApiDatabase {
+public class MCEngineArtificialIntelligenceMongoDB implements IMCEngineArtificialIntelligenceDB {
 
     /** The Bukkit plugin instance. */
     private final Plugin plugin;
@@ -34,7 +34,7 @@ public class MCEngineArtificialIntelligenceApiDBMongoDB implements IMCEngineArti
      *
      * @param plugin The Bukkit plugin instance.
      */
-    public MCEngineArtificialIntelligenceApiDBMongoDB(Plugin plugin) {
+    public MCEngineArtificialIntelligenceMongoDB(Plugin plugin) {
         this.plugin = plugin;
 
         String uri = plugin.getConfig().getString("database.mongodb.uri", "mongodb://localhost:27017");

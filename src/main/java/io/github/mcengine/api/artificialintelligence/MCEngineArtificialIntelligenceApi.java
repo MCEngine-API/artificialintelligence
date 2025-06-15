@@ -6,11 +6,11 @@ import org.bukkit.plugin.Plugin;
 import java.sql.Connection;
 import java.util.Map;
 
-import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
-import io.github.mcengine.api.artificialintelligence.database.postgresql.MCEngineArtificialIntelligenceApiDBPostgreSQL;
-import io.github.mcengine.api.artificialintelligence.database.mongodb.MCEngineArtificialIntelligenceApiDBMongoDB;
-import io.github.mcengine.api.artificialintelligence.database.mysql.MCEngineArtificialIntelligenceApiDBMySQL;
-import io.github.mcengine.api.artificialintelligence.database.sqlite.MCEngineArtificialIntelligenceApiDBSQLite;
+import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceDB;
+import io.github.mcengine.api.artificialintelligence.database.postgresql.MCEngineArtificialIntelligencePostgreSQL;
+import io.github.mcengine.api.artificialintelligence.database.mongodb.MCEngineArtificialIntelligenceMongoDB;
+import io.github.mcengine.api.artificialintelligence.database.mysql.MCEngineArtificialIntelligenceMySQL;
+import io.github.mcengine.api.artificialintelligence.database.sqlite.MCEngineArtificialIntelligenceSQLite;
 import io.github.mcengine.api.artificialintelligence.model.*;
 import io.github.mcengine.api.artificialintelligence.util.*;
 
@@ -28,7 +28,7 @@ public class MCEngineArtificialIntelligenceApi {
     /**
      * Database handler instance for storing and retrieving player tokens.
      */
-    private final IMCEngineArtificialIntelligenceApiDatabase db;
+    private final IMCEngineArtificialIntelligenceDB db;
 
     /**
      * The Bukkit plugin instance associated with this AI API.
@@ -55,10 +55,10 @@ public class MCEngineArtificialIntelligenceApi {
         // Initialize database based on type
         String dbType = plugin.getConfig().getString("database.type", "sqlite").toLowerCase();
         switch (dbType) {
-            case "sqlite" -> this.db = new MCEngineArtificialIntelligenceApiDBSQLite(plugin);
-            case "mysql" -> this.db = new MCEngineArtificialIntelligenceApiDBMySQL(plugin);
-            case "postgresql" -> this.db = new MCEngineArtificialIntelligenceApiDBPostgreSQL(plugin);
-            case "mongodb" -> this.db = new MCEngineArtificialIntelligenceApiDBMongoDB(plugin);
+            case "sqlite" -> this.db = new MCEngineArtificialIntelligenceSQLite(plugin);
+            case "mysql" -> this.db = new MCEngineArtificialIntelligenceMySQL(plugin);
+            case "postgresql" -> this.db = new MCEngineArtificialIntelligencePostgreSQL(plugin);
+            case "mongodb" -> this.db = new MCEngineArtificialIntelligenceMongoDB(plugin);
             default -> throw new IllegalArgumentException("Unsupported database type: " + dbType);
         }
     }
@@ -86,7 +86,7 @@ public class MCEngineArtificialIntelligenceApi {
      *
      * @return The database API implementation.
      */
-    public IMCEngineArtificialIntelligenceApiDatabase getDB() {
+    public IMCEngineArtificialIntelligenceDB getDB() {
         return db;
     }
 

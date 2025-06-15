@@ -1,45 +1,45 @@
-package io.github.mcengine.api.artificialintelligence.database.mysql;
+package io.github.mcengine.api.artificialintelligence.database.postgresql;
 
-import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
+import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceDB;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilToken;
 import org.bukkit.plugin.Plugin;
 
 import java.sql.*;
 
 /**
- * MySQL implementation of the AI API database.
+ * PostgreSQL implementation of the AI API database.
  * Stores and retrieves encrypted player tokens.
  */
-public class MCEngineArtificialIntelligenceApiDBMySQL implements IMCEngineArtificialIntelligenceApiDatabase {
+public class MCEngineArtificialIntelligencePostgreSQL implements IMCEngineArtificialIntelligenceDB {
 
     /** The Bukkit plugin instance. */
     private final Plugin plugin;
 
-    /** Persistent MySQL connection. */
+    /** Persistent PostgreSQL connection. */
     private final Connection conn;
 
     /**
-     * Constructs a new MySQL database handler using configuration values.
-     * Required keys: database.mysql.host, port, name, user, password.
+     * Constructs a new PostgreSQL database handler using configuration values.
+     * Required keys: database.postgresql.host, port, name, user, password.
      *
      * @param plugin The Bukkit plugin instance.
      */
-    public MCEngineArtificialIntelligenceApiDBMySQL(Plugin plugin) {
+    public MCEngineArtificialIntelligencePostgreSQL(Plugin plugin) {
         this.plugin = plugin;
 
-        String host = plugin.getConfig().getString("database.mysql.host", "localhost");
-        String port = plugin.getConfig().getString("database.mysql.port", "3306");
-        String dbName = plugin.getConfig().getString("database.mysql.name", "mcengine_ai");
-        String user = plugin.getConfig().getString("database.mysql.user", "root");
-        String pass = plugin.getConfig().getString("database.mysql.password", "");
+        String host = plugin.getConfig().getString("database.postgresql.host", "localhost");
+        String port = plugin.getConfig().getString("database.postgresql.port", "5432");
+        String dbName = plugin.getConfig().getString("database.postgresql.name", "mcengine_ai");
+        String user = plugin.getConfig().getString("database.postgresql.user", "postgres");
+        String pass = plugin.getConfig().getString("database.postgresql.password", "");
 
-        String jdbcUrl = "jdbc:mysql://" + host + ":" + port + "/" + dbName + "?useSSL=false&autoReconnect=true";
+        String jdbcUrl = "jdbc:postgresql://" + host + ":" + port + "/" + dbName;
 
         Connection tempConn = null;
         try {
             tempConn = DriverManager.getConnection(jdbcUrl, user, pass);
         } catch (SQLException e) {
-            plugin.getLogger().warning("Failed to connect to MySQL: " + e.getMessage());
+            plugin.getLogger().warning("Failed to connect to PostgreSQL: " + e.getMessage());
             e.printStackTrace();
         }
         this.conn = tempConn;
@@ -48,31 +48,31 @@ public class MCEngineArtificialIntelligenceApiDBMySQL implements IMCEngineArtifi
     }
 
     /**
-     * Creates the 'artificialintelligence' table in MySQL if it doesn't exist.
+     * Creates the 'artificialintelligence' table in PostgreSQL if it doesn't exist.
      */
     public void createTable() {
         String sql = """
             CREATE TABLE IF NOT EXISTS artificialintelligence (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                player_uuid VARCHAR(36) NOT NULL,
-                platform VARCHAR(64) NOT NULL,
+                id SERIAL PRIMARY KEY,
+                player_uuid TEXT NOT NULL,
+                platform TEXT NOT NULL,
                 token TEXT NOT NULL,
-                UNIQUE KEY unique_player_platform (player_uuid, platform)
+                UNIQUE(player_uuid, platform)
             );
         """;
 
         try (Statement stmt = conn.createStatement()) {
             stmt.execute(sql);
         } catch (SQLException e) {
-            plugin.getLogger().warning("Failed to create MySQL table: " + e.getMessage());
+            plugin.getLogger().warning("Failed to create PostgreSQL table: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     /**
-     * Returns the current MySQL database connection.
+     * Returns the current PostgreSQL database connection.
      *
-     * @return Active {@link Connection} to the MySQL database.
+     * @return Active {@link Connection} to the PostgreSQL database.
      */
     @Override
     public Connection getDBConnection() {
@@ -93,7 +93,7 @@ public class MCEngineArtificialIntelligenceApiDBMySQL implements IMCEngineArtifi
         String sql = """
             INSERT INTO artificialintelligence (player_uuid, platform, token)
             VALUES (?, ?, ?)
-            ON DUPLICATE KEY UPDATE token = VALUES(token);
+            ON CONFLICT (player_uuid, platform) DO UPDATE SET token = EXCLUDED.token;
         """;
 
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -102,7 +102,7 @@ public class MCEngineArtificialIntelligenceApiDBMySQL implements IMCEngineArtifi
             stmt.setString(3, encryptedToken);
             stmt.executeUpdate();
         } catch (SQLException e) {
-            plugin.getLogger().warning("Failed to save token in MySQL: " + e.getMessage());
+            plugin.getLogger().warning("Failed to save token in PostgreSQL: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -126,7 +126,7 @@ public class MCEngineArtificialIntelligenceApiDBMySQL implements IMCEngineArtifi
                 return rs.getString("token");
             }
         } catch (SQLException e) {
-            plugin.getLogger().warning("Failed to retrieve token from MySQL: " + e.getMessage());
+            plugin.getLogger().warning("Failed to retrieve token from PostgreSQL: " + e.getMessage());
             e.printStackTrace();
         }
         return null;
