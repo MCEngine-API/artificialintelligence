@@ -7,6 +7,9 @@ import java.sql.Connection;
 import java.util.Map;
 
 import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceApiDatabase;
+import io.github.mcengine.api.artificialintelligence.database.postgresql.MCEngineArtificialIntelligenceApiDBPostgreSQL;
+import io.github.mcengine.api.artificialintelligence.database.mongodb.MCEngineArtificialIntelligenceApiDBMongoDB;
+import io.github.mcengine.api.artificialintelligence.database.mysql.MCEngineArtificialIntelligenceApiDBMySQL;
 import io.github.mcengine.api.artificialintelligence.database.sqlite.MCEngineArtificialIntelligenceApiDBSQLite;
 import io.github.mcengine.api.artificialintelligence.model.*;
 import io.github.mcengine.api.artificialintelligence.util.*;
@@ -52,11 +55,11 @@ public class MCEngineArtificialIntelligenceApi {
         // Initialize database based on type
         String dbType = plugin.getConfig().getString("database.type", "sqlite").toLowerCase();
         switch (dbType) {
-            case "sqlite":
-                this.db = new MCEngineArtificialIntelligenceApiDBSQLite(plugin);
-                break;
-            default:
-                throw new IllegalArgumentException("Unsupported database type: " + dbType);
+            case "sqlite" -> this.db = new MCEngineArtificialIntelligenceApiDBSQLite(plugin);
+            case "mysql" -> this.db = new MCEngineArtificialIntelligenceApiDBMySQL(plugin);
+            case "postgresql" -> this.db = new MCEngineArtificialIntelligenceApiDBPostgreSQL(plugin);
+            case "mongodb" -> this.db = new MCEngineArtificialIntelligenceApiDBMongoDB(plugin);
+            default -> throw new IllegalArgumentException("Unsupported database type: " + dbType);
         }
     }
 
