@@ -1,4 +1,4 @@
-package io.github.mcengine.api.artificialintelligence.addon;
+package io.github.mcengine.api.artificialintelligence.extension.addon;
 
 import org.bukkit.plugin.Plugin;
 
