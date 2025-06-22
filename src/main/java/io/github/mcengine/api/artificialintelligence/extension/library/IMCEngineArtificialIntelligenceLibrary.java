@@ -1,11 +1,11 @@
-package io.github.mcengine.api.artificialintelligence.dlc;
+package io.github.mcengine.api.artificialintelligence.extension.library;
 
 import org.bukkit.plugin.Plugin;
 
 /**
  * Interface for AI DLC modules that can be dynamically loaded.
  */
-public interface IMCEngineArtificialIntelligenceDLC {
+public interface IMCEngineArtificialIntelligenceLibrary {
 
     /**
      * Called when the DLC is loaded by the AI engine.
