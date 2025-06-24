@@ -84,7 +84,7 @@ public class MCEngineArtificialIntelligenceApi {
      * @param message   The prompt to send to the AI.
      */
     public void runBotTask(Plugin plugin, IMCEngineArtificialIntelligenceDB db, Player player, String tokenType, String platform, String model, String message) {
-        new MCEngineArtificialIntelligenceApiUtilBotTask(plugin, db, tokenType, player, platform, model, message)
+        new MCEngineArtificialIntelligenceApiUtilBotTask(plugin, this, db, tokenType, player, platform, model, message)
             .runTaskAsynchronously(plugin);
     }
 

@@ -27,6 +27,8 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
      */
     private final Plugin plugin;
 
+    private final MCEngineArtificialIntelligenceApi api;
+
     /**
      * The database interface used to retrieve player-specific tokens
      * for AI interactions when using the "player" token type.
@@ -71,6 +73,7 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
      */
     public MCEngineArtificialIntelligenceApiUtilBotTask(
             Plugin plugin,
+            MCEngineArtificialIntelligenceApi api,
             IMCEngineArtificialIntelligenceDB db,
             String tokenType,
             Player player,
@@ -79,6 +82,7 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
             String message
     ) {
         this.plugin = plugin;
+        this.api = api;
         this.db = db;
         this.tokenType = tokenType;
         this.player = player;
@@ -89,8 +93,6 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
 
     @Override
     public void run() {
-        MCEngineArtificialIntelligenceApi api = new MCEngineArtificialIntelligenceApi();
-
         try {
             // If player is already waiting, ignore new task
             if (api.checkWaitingPlayer(player)) {
