@@ -7,10 +7,7 @@ import java.sql.Connection;
 import java.util.Map;
 
 import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceDB;
-import io.github.mcengine.api.artificialintelligence.database.postgresql.MCEngineArtificialIntelligencePostgreSQL;
-import io.github.mcengine.api.artificialintelligence.database.mongodb.MCEngineArtificialIntelligenceMongoDB;
-import io.github.mcengine.api.artificialintelligence.database.mysql.MCEngineArtificialIntelligenceMySQL;
-import io.github.mcengine.api.artificialintelligence.database.sqlite.MCEngineArtificialIntelligenceSQLite;
+
 import io.github.mcengine.api.artificialintelligence.model.*;
 import io.github.mcengine.api.artificialintelligence.util.*;
 
@@ -21,116 +18,12 @@ import io.github.mcengine.api.artificialintelligence.util.*;
 public class MCEngineArtificialIntelligenceApi {
 
     /**
-     * Singleton instance of the API.
-     */
-    private static MCEngineArtificialIntelligenceApi instance;
-
-    /**
-     * Database handler instance for storing and retrieving player tokens.
-     */
-    private final IMCEngineArtificialIntelligenceDB db;
-
-    /**
-     * The Bukkit plugin instance associated with this AI API.
-     */
-    private final Plugin plugin;
-
-    /**
-     * Constructs a new AI API instance with the given plugin.
-     * Initializes the database handler and loads supported AI models and extensions.
-     * <p>
-     * Supported model configuration keys:
-     * <ul>
-     *   <li>{@code ai.{platform}.models}</li>
-     *   <li>{@code ai.custom.{server}.models}</li>
-     * </ul>
-     * Supported platforms: {@code deepseek}, {@code openai}, {@code openrouter}, {@code customurl}.
-     *
-     * @param plugin The Bukkit plugin instance.
-     */
-    public MCEngineArtificialIntelligenceApi(Plugin plugin) {
-        instance = this;
-        this.plugin = plugin;
-
-        // Initialize database based on type
-        String dbType = plugin.getConfig().getString("database.type", "sqlite").toLowerCase();
-        switch (dbType) {
-            case "sqlite" -> this.db = new MCEngineArtificialIntelligenceSQLite(plugin);
-            case "mysql" -> this.db = new MCEngineArtificialIntelligenceMySQL(plugin);
-            case "postgresql" -> this.db = new MCEngineArtificialIntelligencePostgreSQL(plugin);
-            case "mongodb" -> this.db = new MCEngineArtificialIntelligenceMongoDB(plugin);
-            default -> throw new IllegalArgumentException("Unsupported database type: " + dbType);
-        }
-    }
-
-    /**
-     * Returns the global API singleton instance.
-     *
-     * @return The {@link MCEngineArtificialIntelligenceApi} instance.
-     */
-    public static MCEngineArtificialIntelligenceApi getApi() {
-        return instance;
-    }
-
-    /**
-     * Returns the Bukkit plugin instance linked to this API.
-     *
-     * @return The plugin instance.
-     */
-    public Plugin getPlugin() {
-        return plugin;
-    }
-
-    /**
-     * Returns the database handler implementation.
-     *
-     * @return The database API implementation.
-     */
-    public IMCEngineArtificialIntelligenceDB getDB() {
-        return db;
-    }
-
-    /**
-     * Retrieves the active database connection used by the AI plugin.
-     * <p>
-     * This delegates to the underlying database implementation such as SQLite.
-     * Useful for executing custom SQL queries or diagnostics externally.
-     *
-     * @return The {@link Connection} instance for the configured database.
-     */
-    public Connection getDBConnection() {
-        return db.getDBConnection();
-    }
-
-    /**
-     * Stores or updates a player's API token for a given AI platform.
-     *
-     * @param playerUuid The UUID of the player.
-     * @param platform   The platform name (e.g., {@code openai}).
-     * @param token      The raw token to store.
-     */
-    public void setPlayerToken(String playerUuid, String platform, String token) {
-        db.setPlayerToken(playerUuid, platform, token);
-    }
-
-    /**
-     * Retrieves the stored token for a given player and platform.
-     *
-     * @param playerUuid The UUID of the player.
-     * @param platform   The platform name.
-     * @return The encrypted token, or {@code null} if not found.
-     */
-    public String getPlayerToken(String playerUuid, String platform) {
-        return db.getPlayerToken(playerUuid, platform);
-    }
-
-    /**
      * Registers a model under the specified platform if not already registered.
      *
      * @param platform The platform name (e.g., {@code openai}, {@code customurl}).
      * @param model    The model name or {@code server:model} if custom.
      */
-    public void registerModel(String platform, String model) {
+    public void registerModel(Plugin plugin, String platform, String model) {
         MCEngineArtificialIntelligenceApiUtilAi.registerModel(plugin, platform, model);
     }
 
@@ -190,8 +83,8 @@ public class MCEngineArtificialIntelligenceApi {
      * @param model     The AI model name.
      * @param message   The prompt to send to the AI.
      */
-    public void runBotTask(Player player, String tokenType, String platform, String model, String message) {
-        new MCEngineArtificialIntelligenceApiUtilBotTask(plugin, tokenType, player, platform, model, message)
+    public void runBotTask(Plugin plugin, IMCEngineArtificialIntelligenceDB db, Player player, String tokenType, String platform, String model, String message) {
+        new MCEngineArtificialIntelligenceApiUtilBotTask(plugin, this, db, tokenType, player, platform, model, message)
             .runTaskAsynchronously(plugin);
     }
 
