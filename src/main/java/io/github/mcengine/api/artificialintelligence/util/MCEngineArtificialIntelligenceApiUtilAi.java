@@ -18,28 +18,29 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * Utility class for AI model registration and caching.
+ * Utility class for AI model registration and API interaction.
  */
 public class MCEngineArtificialIntelligenceApiUtilAi {
 
-    // 🔥 GLOBAL cache shared across ALL plugins (platform → (model → instance))
+    /**
+     * Global cache shared across all plugins.
+     * Maps platform name to its models and instances.
+     */
     private static final Map<String, Map<String, IMCEngineArtificialIntelligenceApiModel>> modelCache = new HashMap<>();
 
     /**
-     * Sends a prompt message to an AI model endpoint and retrieves the response.
-     * This method supports token decryption (when user-specific tokens are used) and shared logic
-     * for different APIs like OpenAI, OpenRouter, DeepSeek, and custom URLs.
+     * Sends a prompt to an AI API and returns the full JSON response.
      *
-     * @param plugin       The Bukkit plugin instance used for logging.
-     * @param endpoint     The API endpoint URL (e.g., https://api.openai.com/v1/chat/completions).
-     * @param aiModel      The AI model identifier (e.g., "gpt-4", "deepseek-chat").
-     * @param defaultToken The default API token configured in the plugin.
-     * @param token        The user-specific token; if different from default, it will be decrypted.
-     * @param message      The user message or prompt to send to the AI model.
-     * @param isOpenRouter Whether to include OpenRouter-specific headers (Referer, X-Title).
-     * @return The AI-generated response as a string, or an error message if something fails.
+     * @param plugin       The Bukkit plugin instance.
+     * @param endpoint     API endpoint URL.
+     * @param aiModel      Model name (e.g., "gpt-4").
+     * @param defaultToken Server default token.
+     * @param token        User or provided token.
+     * @param message      User prompt content.
+     * @param isOpenRouter Whether to include OpenRouter headers.
+     * @return The raw JSON response from the AI API, or error message in JSON format.
      */
-    public static String getResponse(
+    public static JsonObject getResponse(
             Plugin plugin,
             String endpoint,
             String aiModel,
@@ -50,17 +51,20 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
     ) {
         if (token == null || token.isEmpty()) {
             plugin.getLogger().severe("Token is missing or invalid.");
-            return "Error: Missing or invalid token.";
+            JsonObject error = new JsonObject();
+            error.addProperty("error", "Missing or invalid token.");
+            return error;
         }
 
         String actualToken = token;
 
-        // Decrypt the user token only if it differs from the default (server) token
         if (!token.equals(defaultToken)) {
             actualToken = MCEngineArtificialIntelligenceApiUtilToken.decryptToken(token);
             if (actualToken == null || actualToken.isEmpty()) {
                 plugin.getLogger().warning("Failed to decrypt user token.");
-                return "Error: Invalid or corrupt user token.";
+                JsonObject error = new JsonObject();
+                error.addProperty("error", "Invalid or corrupt user token.");
+                return error;
             }
         }
 
@@ -73,7 +77,6 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
             conn.setRequestProperty("Authorization", "Bearer " + actualToken);
             conn.setRequestProperty("Content-Type", "application/json");
 
-            // Optional headers for OpenRouter
             if (isOpenRouter) {
                 conn.setRequestProperty("HTTP-Referer", "https://github.com/mcengine");
                 conn.setRequestProperty("X-Title", "MCEngine AI");
@@ -81,7 +84,6 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
 
             conn.setDoOutput(true);
 
-            // Build JSON payload
             JsonObject payload = new JsonObject();
             payload.addProperty("model", aiModel);
             payload.addProperty("temperature", 0.7);
@@ -93,16 +95,16 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
             messages.add(userMessage);
             payload.add("messages", messages);
 
-            // Send request
             try (OutputStream os = conn.getOutputStream()) {
                 os.write(payload.toString().getBytes(StandardCharsets.UTF_8));
             }
 
-            // Handle response
             int statusCode = conn.getResponseCode();
             if (statusCode != 200) {
                 plugin.getLogger().warning("AI API returned status: " + statusCode);
-                return "Error: API request failed.";
+                JsonObject error = new JsonObject();
+                error.addProperty("error", "API request failed with status code: " + statusCode);
+                return error;
             }
 
             BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), StandardCharsets.UTF_8));
@@ -113,23 +115,53 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
             }
             in.close();
 
-            JsonObject responseJson = JsonParser.parseString(responseBuilder.toString()).getAsJsonObject();
-            JsonArray choices = responseJson.getAsJsonArray("choices");
-
-            if (choices.size() > 0) {
-                JsonObject messageObj = choices.get(0).getAsJsonObject().getAsJsonObject("message");
-                return messageObj.get("content").getAsString().trim();
-            }
-
-            return "No response from AI.";
+            return JsonParser.parseString(responseBuilder.toString()).getAsJsonObject();
         } catch (Exception e) {
             plugin.getLogger().severe("AI API error: " + e.getMessage());
-            return "Exception: " + e.getMessage();
+            JsonObject error = new JsonObject();
+            error.addProperty("error", "Exception: " + e.getMessage());
+            return error;
         }
     }
 
     /**
-     * Registers an AI model instance if not already cached.
+     * Extracts the completion content from a full response JSON.
+     *
+     * @param responseJson The full JSON response from the API.
+     * @return The generated message content or fallback string.
+     */
+    public static String getCompletionContent(JsonObject responseJson) {
+        try {
+            JsonArray choices = responseJson.getAsJsonArray("choices");
+            if (choices != null && choices.size() > 0) {
+                JsonObject messageObj = choices.get(0).getAsJsonObject().getAsJsonObject("message");
+                return messageObj.get("content").getAsString().trim();
+            }
+        } catch (Exception e) {
+            return "Error parsing content: " + e.getMessage();
+        }
+        return "No response from AI.";
+    }
+
+    /**
+     * Extracts total token usage from the response JSON.
+     *
+     * @param responseJson The full JSON response from the API.
+     * @return Total token usage as integer, or -1 if not available.
+     */
+    public static int getTotalTokenUsage(JsonObject responseJson) {
+        try {
+            JsonObject usage = responseJson.getAsJsonObject("usage");
+            if (usage != null && usage.has("total_tokens")) {
+                return usage.get("total_tokens").getAsInt();
+            }
+        } catch (Exception ignored) {
+        }
+        return -1;
+    }
+
+    /**
+     * Registers an AI model into the cache for given platform and model name.
      *
      * @param plugin   The Bukkit plugin instance.
      * @param platform AI platform name.
@@ -137,14 +169,14 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
      */
     public static void registerModel(Plugin plugin, String platform, String model) {
         Logger logger = plugin.getLogger();
-        platform = platform.toLowerCase(); // normalize
+        platform = platform.toLowerCase();
 
         synchronized (modelCache) {
             modelCache.putIfAbsent(platform, new HashMap<>());
             Map<String, IMCEngineArtificialIntelligenceApiModel> platformMap = modelCache.get(platform);
 
             if (platformMap.containsKey(model)) {
-                return; // Already registered
+                return;
             }
 
             IMCEngineArtificialIntelligenceApiModel aiModel;
@@ -181,14 +213,14 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
     }
 
     /**
-     * Retrieves a registered AI model.
+     * Retrieves the AI model instance from cache.
      *
-     * @param platform AI platform.
+     * @param platform AI platform name.
      * @param model    Model name.
      * @return AI model instance.
      */
     public static IMCEngineArtificialIntelligenceApiModel getAi(String platform, String model) {
-        platform = platform.toLowerCase(); // normalize
+        platform = platform.toLowerCase();
         synchronized (modelCache) {
             Map<String, IMCEngineArtificialIntelligenceApiModel> platformMap = modelCache.get(platform);
             if (platformMap == null || !platformMap.containsKey(model)) {
@@ -199,9 +231,9 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
     }
 
     /**
-     * Returns a shallow copy of the current model cache containing all registered models.
+     * Returns a shallow copy of all currently registered AI models.
      *
-     * @return A map of platform names to their associated model instances.
+     * @return Map of platform names to their model instances.
      */
     public static Map<String, Map<String, ?>> getAllModels() {
         synchronized (modelCache) {

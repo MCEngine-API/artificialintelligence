@@ -1,25 +1,26 @@
 package io.github.mcengine.api.artificialintelligence;
 
+import com.google.gson.JsonObject;
+import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceDB;
+import io.github.mcengine.api.artificialintelligence.model.IMCEngineArtificialIntelligenceApiModel;
+import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilAi;
+import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilBotManager;
+import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilBotTask;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
-import java.sql.Connection;
 import java.util.Map;
-
-import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceDB;
-
-import io.github.mcengine.api.artificialintelligence.model.*;
-import io.github.mcengine.api.artificialintelligence.util.*;
 
 /**
  * Main API class for MCEngineArtificialIntelligence.
- * Handles AI model initialization, extension loading (AddOns/DLCs), and token validation.
+ * Handles AI model initialization, response handling, token usage, and task management.
  */
 public class MCEngineArtificialIntelligenceApi {
 
     /**
      * Registers a model under the specified platform if not already registered.
      *
+     * @param plugin   The Bukkit plugin instance.
      * @param platform The platform name (e.g., {@code openai}, {@code customurl}).
      * @param model    The model name or {@code server:model} if custom.
      */
@@ -32,7 +33,7 @@ public class MCEngineArtificialIntelligenceApi {
      *
      * @param platform The platform name.
      * @param model    The model name.
-     * @return The model interface, or {@code null} if not registered.
+     * @return The model interface instance.
      */
     public IMCEngineArtificialIntelligenceApiModel getAi(String platform, String model) {
         return MCEngineArtificialIntelligenceApiUtilAi.getAi(platform, model);
@@ -43,40 +44,42 @@ public class MCEngineArtificialIntelligenceApi {
      *
      * @return A nested map of platform → model → model instance.
      */
+    @SuppressWarnings("unchecked")
     public Map<String, Map<String, IMCEngineArtificialIntelligenceApiModel>> getAiAll() {
-        //noinspection unchecked
         return (Map<String, Map<String, IMCEngineArtificialIntelligenceApiModel>>) (Map<?, ?>)
                 MCEngineArtificialIntelligenceApiUtilAi.getAllModels();
     }
 
     /**
-     * Gets a direct response from a registered AI model.
+     * Sends a prompt to the specified model and receives a raw JSON response.
      *
-     * @param platform The AI platform.
+     * @param platform The AI platform name.
      * @param model    The model name.
-     * @param message  The prompt to send.
-     * @return The AI-generated response.
+     * @param message  The message to send.
+     * @return A {@link JsonObject} representing the full JSON response.
      */
-    public String getResponse(String platform, String model, String message) {
+    public JsonObject getResponse(String platform, String model, String message) {
         return getAi(platform, model).getResponse(message);
     }
 
     /**
-     * Gets a direct response from an AI model using a provided token.
+     * Sends a prompt to the specified model using a custom token and receives a raw JSON response.
      *
-     * @param platform The AI platform.
+     * @param platform The AI platform name.
      * @param model    The model name.
-     * @param token    The API key or personal token.
+     * @param token    The token to authorize the request.
      * @param message  The prompt to send.
-     * @return The AI-generated response.
+     * @return A {@link JsonObject} representing the full JSON response.
      */
-    public String getResponse(String platform, String model, String token, String message) {
+    public JsonObject getResponse(String platform, String model, String token, String message) {
         return getAi(platform, model).getResponse(token, message);
     }
 
     /**
      * Executes an AI bot task asynchronously with the given input.
      *
+     * @param plugin    The Bukkit plugin instance.
+     * @param db        The database interface used to store AI data.
      * @param player    The player who initiated the task.
      * @param tokenType The type of token to use, either {@code "server"} or {@code "player"}.
      * @param platform  The AI platform name.
@@ -85,7 +88,7 @@ public class MCEngineArtificialIntelligenceApi {
      */
     public void runBotTask(Plugin plugin, IMCEngineArtificialIntelligenceDB db, Player player, String tokenType, String platform, String model, String message) {
         new MCEngineArtificialIntelligenceApiUtilBotTask(plugin, this, db, tokenType, player, platform, model, message)
-            .runTaskAsynchronously(plugin);
+                .runTaskAsynchronously(plugin);
     }
 
     /**
@@ -106,5 +109,50 @@ public class MCEngineArtificialIntelligenceApi {
      */
     public boolean checkWaitingPlayer(Player player) {
         return MCEngineArtificialIntelligenceApiUtilBotManager.isWaiting(player);
+    }
+
+    /**
+     * Extracts the response content from a full JSON object returned by the AI API.
+     *
+     * @param responseJson The full JSON response.
+     * @return The message content as plain text, or fallback string on error.
+     */
+    public String getCompletionContent(JsonObject responseJson) {
+        return MCEngineArtificialIntelligenceApiUtilAi.getCompletionContent(responseJson);
+    }
+
+    /**
+     * Extracts the total token usage from a full JSON response.
+     *
+     * @param responseJson The full JSON response.
+     * @return The total number of tokens used, or -1 if unavailable.
+     */
+    public int getTotalTokenUsage(JsonObject responseJson) {
+        return MCEngineArtificialIntelligenceApiUtilAi.getTotalTokenUsage(responseJson);
+    }
+
+    /**
+     * Sends a prompt to a model and retrieves the full JSON response.
+     *
+     * @param platform The AI platform.
+     * @param model    The model name.
+     * @param message  The prompt message.
+     * @return The full JSON response.
+     */
+    public JsonObject getResponseJson(String platform, String model, String message) {
+        return getResponse(platform, model, message);
+    }
+
+    /**
+     * Sends a prompt to a model using a user token and retrieves the full JSON response.
+     *
+     * @param platform The AI platform.
+     * @param model    The model name.
+     * @param token    The user or API token.
+     * @param message  The prompt message.
+     * @return The full JSON response.
+     */
+    public JsonObject getResponseJson(String platform, String model, String token, String message) {
+        return getResponse(platform, model, token, message);
     }
 }

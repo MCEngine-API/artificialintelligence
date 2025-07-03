@@ -1,8 +1,8 @@
 package io.github.mcengine.api.artificialintelligence.model;
 
-import org.bukkit.plugin.Plugin;
-
+import com.google.gson.JsonObject;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilAi;
+import org.bukkit.plugin.Plugin;
 
 /**
  * Custom URL AI implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
@@ -58,26 +58,26 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
 
     /**
      * Sends a user message to the custom API endpoint using the default token from config
-     * and returns the AI's response.
+     * and returns the full JSON response.
      *
      * @param message The user input message to send.
-     * @return The AI-generated response string.
+     * @return The full JSON response from the custom AI endpoint.
      */
     @Override
-    public String getResponse(String message) {
+    public JsonObject getResponse(String message) {
         return getResponse(defaultToken, message);
     }
 
     /**
      * Sends a user message to the custom API endpoint using the provided user-specific token
-     * and returns the AI's response.
+     * and returns the full JSON response.
      *
      * @param token   The user-specific token used for authentication in the API request.
      * @param message The user input message to send.
-     * @return The AI-generated response string.
+     * @return The full JSON response from the custom AI endpoint.
      */
     @Override
-    public String getResponse(String token, String message) {
+    public JsonObject getResponse(String token, String message) {
         return MCEngineArtificialIntelligenceApiUtilAi.getResponse(
                 plugin,
                 endpoint,
