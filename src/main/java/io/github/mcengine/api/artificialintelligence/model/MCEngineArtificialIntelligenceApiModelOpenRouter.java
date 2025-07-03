@@ -1,7 +1,8 @@
 package io.github.mcengine.api.artificialintelligence.model;
 
-import org.bukkit.plugin.Plugin;
+import com.google.gson.JsonObject;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilAi;
+import org.bukkit.plugin.Plugin;
 
 /**
  * OpenRouter implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
@@ -41,10 +42,10 @@ public class MCEngineArtificialIntelligenceApiModelOpenRouter implements IMCEngi
      * Sends a user message to the OpenRouter API using the default token from configuration.
      *
      * @param message The user input message to send.
-     * @return The AI-generated response string.
+     * @return The full JSON response from OpenRouter.
      */
     @Override
-    public String getResponse(String message) {
+    public JsonObject getResponse(String message) {
         return getResponse(defaultToken, message);
     }
 
@@ -53,10 +54,10 @@ public class MCEngineArtificialIntelligenceApiModelOpenRouter implements IMCEngi
      *
      * @param token   A user-specific authentication token to use for the API call.
      * @param message The user input message to send to the AI.
-     * @return The AI-generated response string, or an error message if the request fails.
+     * @return A {@link JsonObject} containing the full response from the OpenRouter API.
      */
     @Override
-    public String getResponse(String token, String message) {
+    public JsonObject getResponse(String token, String message) {
         return MCEngineArtificialIntelligenceApiUtilAi.getResponse(
                 plugin,
                 "https://openrouter.ai/api/v1/chat/completions",

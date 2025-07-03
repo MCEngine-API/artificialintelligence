@@ -1,7 +1,8 @@
 package io.github.mcengine.api.artificialintelligence.model;
 
-import org.bukkit.plugin.Plugin;
+import com.google.gson.JsonObject;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilAi;
+import org.bukkit.plugin.Plugin;
 
 /**
  * DeepSeek implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
@@ -41,10 +42,10 @@ public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngine
      * Sends a message to the DeepSeek API using the default token from the configuration.
      *
      * @param message The user input message or prompt to send.
-     * @return The AI-generated response as a string.
+     * @return The full JSON response from the DeepSeek API.
      */
     @Override
-    public String getResponse(String message) {
+    public JsonObject getResponse(String message) {
         return getResponse(defaultToken, message);
     }
 
@@ -53,10 +54,10 @@ public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngine
      *
      * @param token   The user-specific authentication token for DeepSeek.
      * @param message The user input message or prompt to send.
-     * @return The AI-generated response as a string, or an error message if the request fails.
+     * @return A {@link JsonObject} containing the full response from DeepSeek API.
      */
     @Override
-    public String getResponse(String token, String message) {
+    public JsonObject getResponse(String token, String message) {
         return MCEngineArtificialIntelligenceApiUtilAi.getResponse(
                 plugin,
                 "https://api.deepseek.com/v1/chat/completions",

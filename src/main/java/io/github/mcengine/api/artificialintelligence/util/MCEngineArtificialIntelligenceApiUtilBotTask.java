@@ -1,8 +1,8 @@
 package io.github.mcengine.api.artificialintelligence.util;
 
+import com.google.gson.JsonObject;
 import io.github.mcengine.api.artificialintelligence.MCEngineArtificialIntelligenceApi;
 import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceDB;
-import io.github.mcengine.api.artificialintelligence.model.IMCEngineArtificialIntelligenceApiModel;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -10,66 +10,54 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 /**
- * Async task that sends player input to the AI API and sends the response back.
+ * Asynchronous task that sends a player's input to an AI model and delivers the response.
  * <p>
- * This task handles:
+ * This task performs:
  * <ul>
- *   <li>Waiting-state management per player.</li>
- *   <li>Token selection (server or player-based).</li>
- *   <li>Prompt formatting and response dispatching.</li>
+ *     <li>Checking and enforcing waiting state per player</li>
+ *     <li>Server or player token resolution</li>
+ *     <li>Conversation history injection and context building</li>
+ *     <li>Prompt dispatch and response collection from AI</li>
+ *     <li>Color-coded response back to the player</li>
  * </ul>
- * Can be reused by any addon that uses {@link MCEngineArtificialIntelligenceApiUtilBotManager}.
  */
 public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable {
 
-    /**
-     * The plugin instance running the task.
-     */
+    /** The plugin instance executing this task. */
     private final Plugin plugin;
 
+    /** Reference to the main MCEngineArtificialIntelligence API instance. */
     private final MCEngineArtificialIntelligenceApi api;
 
-    /**
-     * The database interface used to retrieve player-specific tokens
-     * for AI interactions when using the "player" token type.
-     */
+    /** AI database interface for retrieving user tokens if needed. */
     private final IMCEngineArtificialIntelligenceDB db;
 
-    /**
-     * The token type to use, either "server" or "player".
-     */
+    /** Token usage mode: "server" or "player". */
     private final String tokenType;
 
-    /**
-     * The player who initiated the request.
-     */
+    /** Player who triggered the bot interaction. */
     private final Player player;
 
-    /**
-     * The AI platform to interact with (e.g., openai, deepseek).
-     */
+    /** AI platform name (e.g., openai, deepseek, customurl). */
     private final String platform;
 
-    /**
-     * The AI model name to use for the response.
-     */
+    /** AI model name. */
     private final String model;
 
-    /**
-     * The message content sent by the player.
-     */
+    /** Message input sent by the player. */
     private final String message;
 
     /**
-     * Constructs a new bot task to interact with the AI.
+     * Constructs a new bot task for asynchronous AI interaction.
      *
      * @param plugin    The plugin instance.
+     * @param api       The API instance.
      * @param db        The AI database interface.
      * @param tokenType The type of token to use ("server" or "player").
-     * @param player    The player in conversation.
-     * @param platform  The AI platform to use.
-     * @param model     The model name to use.
-     * @param message   The message sent by the player.
+     * @param player    The player sending the message.
+     * @param platform  The AI platform.
+     * @param model     The model name under that platform.
+     * @param message   The message to send.
      */
     public MCEngineArtificialIntelligenceApiUtilBotTask(
             Plugin plugin,
@@ -91,10 +79,13 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
         this.message = message;
     }
 
+    /**
+     * Executes the asynchronous AI interaction task.
+     */
     @Override
     public void run() {
         try {
-            // If player is already waiting, ignore new task
+            // Ignore new task if already waiting
             if (api.checkWaitingPlayer(player)) {
                 Bukkit.getScheduler().runTask(plugin, () ->
                         player.sendMessage(ChatColor.RED + "⏳ Please wait for the AI to respond before sending another message.")
@@ -102,49 +93,52 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
                 return;
             }
 
-            // Validate platform/model exists
-            IMCEngineArtificialIntelligenceApiModel ai = api.getAi(platform, model);
-            if (ai == null) {
-                Bukkit.getScheduler().runTask(plugin, () ->
-                        player.sendMessage("Invalid AI model or platform: " + platform + "/" + model)
-                );
-                return;
-            }
+            // Mark player as waiting
+            api.setWaiting(player, true);
 
-            // Mark as waiting
-            MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, true);
-
+            // Construct chat context history
             String fullPrompt = MCEngineArtificialIntelligenceApiUtilBotManager.get(player) + "[Player]: " + message;
-            String response;
 
+            // Get response from API (depending on token type)
+            JsonObject responseJson;
             if ("server".equalsIgnoreCase(tokenType)) {
-                response = api.getResponse(platform, model, fullPrompt);
+                responseJson = api.getResponse(platform, model, fullPrompt);
             } else if ("player".equalsIgnoreCase(tokenType)) {
                 String token = db.getPlayerToken(player.getUniqueId().toString(), platform);
                 if (token == null || token.isEmpty()) {
                     throw new IllegalStateException("No token found for player.");
                 }
-                response = api.getResponse(platform, model, token, fullPrompt);
+                responseJson = api.getResponse(platform, model, token, fullPrompt);
             } else {
                 throw new IllegalArgumentException("Unknown tokenType: " + tokenType);
             }
 
-            String playerPrompt = "[Player]: " + message;
-            String aiReply = "[Ai]: " + response;
+            // Extract content and token usage
+            String replyContent = api.getCompletionContent(responseJson);
+            int tokenUsed = api.getTotalTokenUsage(responseJson);
 
+            // Log conversation
+            String playerPrompt = "[Player]: " + message;
+            String aiReply = "[Ai]: " + replyContent;
+
+            // Deliver response to player on main thread
             Bukkit.getScheduler().runTask(plugin, () -> {
-                player.sendMessage("§e[ChatBot]§r " + response);
+                player.sendMessage(ChatColor.YELLOW + "[ChatBot] " + ChatColor.RESET + replyContent);
+                if (tokenUsed >= 0) {
+                    player.sendMessage(ChatColor.GREEN + "[Tokens Used] " + ChatColor.RESET + tokenUsed);
+                }
+
                 MCEngineArtificialIntelligenceApiUtilBotManager.append(player, playerPrompt);
                 MCEngineArtificialIntelligenceApiUtilBotManager.append(player, aiReply);
-                MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, false);
+                api.setWaiting(player, false);
             });
 
         } catch (Exception e) {
             e.printStackTrace();
-            Bukkit.getScheduler().runTask(plugin, () ->
-                    player.sendMessage("§c[ChatBot] Unexpected error: " + e.getMessage())
-            );
-            MCEngineArtificialIntelligenceApiUtilBotManager.setWaiting(player, false);
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                player.sendMessage(ChatColor.DARK_RED + "[ChatBot] Unexpected error: " + e.getMessage());
+                api.setWaiting(player, false);
+            });
         }
     }
 }

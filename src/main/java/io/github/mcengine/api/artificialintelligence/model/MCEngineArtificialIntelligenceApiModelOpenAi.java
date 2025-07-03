@@ -1,7 +1,8 @@
 package io.github.mcengine.api.artificialintelligence.model;
 
-import org.bukkit.plugin.Plugin;
+import com.google.gson.JsonObject;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilAi;
+import org.bukkit.plugin.Plugin;
 
 /**
  * OpenAI API implementation of {@link IMCEngineArtificialIntelligenceApiModel}.
@@ -10,18 +11,17 @@ import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialInte
 public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineArtificialIntelligenceApiModel {
 
     /**
-     * The Bukkit plugin instance used for accessing configuration and logging.
+     * The Bukkit plugin instance used for configuration access and logging.
      */
     private final Plugin plugin;
 
     /**
-     * The default token used to authenticate with the OpenAI API.
-     * Pulled from config at {@code ai.openai.token}.
+     * The default token from config used to authenticate OpenAI API calls.
      */
     private final String defaultToken;
 
     /**
-     * The model name (e.g., gpt-4, gpt-3.5-turbo) used in requests to the OpenAI API.
+     * The model name (e.g., "gpt-4", "gpt-3.5-turbo") to use for completion requests.
      */
     private final String aiModel;
 
@@ -41,22 +41,22 @@ public class MCEngineArtificialIntelligenceApiModelOpenAi implements IMCEngineAr
      * Sends a user message to the OpenAI API using the default token from configuration.
      *
      * @param message The user input message or prompt to send.
-     * @return The AI-generated response from OpenAI.
+     * @return The full JSON response from the OpenAI API.
      */
     @Override
-    public String getResponse(String message) {
+    public JsonObject getResponse(String message) {
         return getResponse(defaultToken, message);
     }
 
     /**
-     * Sends a user message to the OpenAI API using a provided user-specific token and returns the response.
+     * Sends a user message to the OpenAI API using a provided token and returns the full JSON response.
      *
      * @param token   A user-specific token used for authenticating the request.
      * @param message The input message or prompt to send to the AI.
-     * @return The AI-generated response string, or an error message if the request fails.
+     * @return A {@link JsonObject} containing the full response from OpenAI API.
      */
     @Override
-    public String getResponse(String token, String message) {
+    public JsonObject getResponse(String token, String message) {
         return MCEngineArtificialIntelligenceApiUtilAi.getResponse(
                 plugin,
                 "https://api.openai.com/v1/chat/completions",

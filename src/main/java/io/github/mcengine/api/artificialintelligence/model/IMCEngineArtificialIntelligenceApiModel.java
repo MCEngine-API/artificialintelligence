@@ -1,25 +1,27 @@
 package io.github.mcengine.api.artificialintelligence.model;
 
+import com.google.gson.JsonObject;
+
 /**
  * Interface for AI response providers.
- * Implementing classes should provide logic to generate a response based on the input message.
+ * Implementing classes must provide logic to generate a full JSON response based on input.
  */
 public interface IMCEngineArtificialIntelligenceApiModel {
 
     /**
-     * Generates a response from the AI based on the given message.
+     * Generates a full JSON response from the AI using the default token.
      *
      * @param message The input message or prompt to the AI.
-     * @return The AI-generated response.
+     * @return A {@link JsonObject} containing the full AI response.
      */
-    String getResponse(String message);
+    JsonObject getResponse(String message);
 
     /**
-     * Generates a response from the AI using a user-specific token.
+     * Generates a full JSON response from the AI using a user-specific token.
      *
      * @param token   The user-specific token for authenticating or identifying the request.
      * @param message The input message or prompt to the AI.
-     * @return The AI-generated response.
+     * @return A {@link JsonObject} containing the full AI response.
      */
-    String getResponse(String token, String message);
+    JsonObject getResponse(String token, String message);
 }
