@@ -7,7 +7,7 @@ import org.bukkit.plugin.Plugin;
  * <p>
  * Implement this interface to provide AI capabilities to the core system.
  */
-public interface IMCEngineArtificialIntelligenceAPI {
+public interface IMCEngineArtificialintelligenceAPI {
 
     /**
      * Called when the AI API module is loaded by the engine.

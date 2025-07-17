@@ -7,7 +7,7 @@ import org.bukkit.plugin.Plugin;
  * <p>
  * These modules typically encapsulate custom scripted AI behavior and are used to extend game logic.
  */
-public interface IMCEngineArtificialIntelligenceSkript {
+public interface IMCEngineArtificialintelligenceSkript {
 
     /**
      * Called when the AI skript module is loaded by the engine.
