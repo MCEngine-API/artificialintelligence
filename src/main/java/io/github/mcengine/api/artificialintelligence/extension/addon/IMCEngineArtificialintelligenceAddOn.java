@@ -18,6 +18,16 @@ public interface IMCEngineArtificialintelligenceAddOn {
     void onLoad(Plugin plugin);
 
     /**
+     * Called when the AddOn is unloaded or disabled by the engine.
+     * <p>
+     * Use this method to release resources, unregister listeners,
+     * or perform any necessary cleanup.
+     *
+     * @param plugin The plugin instance providing context.
+     */
+    void onDisload(Plugin plugin);
+
+    /**
      * Sets a unique ID for this AI AddOn instance.
      *
      * @param id The unique ID assigned by the engine.
