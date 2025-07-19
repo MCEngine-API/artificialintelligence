@@ -36,6 +36,7 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
      * @param aiModel      Model name (e.g., "gpt-4").
      * @param defaultToken Server default token.
      * @param token        User or provided token.
+     * @param systemPrompt The system prompt to guide AI behavior.
      * @param message      User prompt content.
      * @param isOpenRouter Whether to include OpenRouter headers.
      * @return The raw JSON response from the AI API, or error message in JSON format.
@@ -46,6 +47,7 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
             String aiModel,
             String defaultToken,
             String token,
+            String systemPrompt,
             String message,
             boolean isOpenRouter
     ) {
@@ -89,10 +91,19 @@ public class MCEngineArtificialIntelligenceApiUtilAi {
             payload.addProperty("temperature", 0.7);
 
             JsonArray messages = new JsonArray();
+
+            if (systemPrompt != null && !systemPrompt.isEmpty()) {
+                JsonObject systemMessage = new JsonObject();
+                systemMessage.addProperty("role", "system");
+                systemMessage.addProperty("content", systemPrompt);
+                messages.add(systemMessage);
+            }
+
             JsonObject userMessage = new JsonObject();
             userMessage.addProperty("role", "user");
             userMessage.addProperty("content", message);
             messages.add(userMessage);
+
             payload.add("messages", messages);
 
             try (OutputStream os = conn.getOutputStream()) {
