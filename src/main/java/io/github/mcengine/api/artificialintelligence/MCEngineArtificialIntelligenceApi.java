@@ -53,26 +53,28 @@ public class MCEngineArtificialIntelligenceApi {
     /**
      * Sends a prompt to the specified model and receives a raw JSON response.
      *
-     * @param platform The AI platform name.
-     * @param model    The model name.
-     * @param message  The message to send.
+     * @param platform     The AI platform name.
+     * @param model        The model name.
+     * @param systemPrompt The system prompt providing context or behavior instructions.
+     * @param message      The message to send.
      * @return A {@link JsonObject} representing the full JSON response.
      */
-    public JsonObject getResponse(String platform, String model, String message) {
-        return getAi(platform, model).getResponse(message);
+    public JsonObject getResponse(String platform, String model, String systemPrompt, String message) {
+        return getAi(platform, model).getResponse(systemPrompt, message);
     }
 
     /**
      * Sends a prompt to the specified model using a custom token and receives a raw JSON response.
      *
-     * @param platform The AI platform name.
-     * @param model    The model name.
-     * @param token    The token to authorize the request.
-     * @param message  The prompt to send.
+     * @param platform     The AI platform name.
+     * @param model        The model name.
+     * @param token        The token to authorize the request.
+     * @param systemPrompt The system prompt providing context or behavior instructions.
+     * @param message      The prompt to send to the AI.
      * @return A {@link JsonObject} representing the full JSON response.
      */
-    public JsonObject getResponse(String platform, String model, String token, String message) {
-        return getAi(platform, model).getResponse(token, message);
+    public JsonObject getResponse(String platform, String model, String token, String systemPrompt, String message) {
+        return getAi(platform, model).getResponse(token, systemPrompt, message);
     }
 
     /**
