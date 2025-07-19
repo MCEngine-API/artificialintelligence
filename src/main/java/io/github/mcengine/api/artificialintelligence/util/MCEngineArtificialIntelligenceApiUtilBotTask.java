@@ -97,18 +97,19 @@ public class MCEngineArtificialIntelligenceApiUtilBotTask extends BukkitRunnable
             api.setWaiting(player, true);
 
             // Construct chat context history
-            String fullPrompt = MCEngineArtificialIntelligenceApiUtilBotManager.get(player) + "[Player]: " + message;
+            String chatContext = MCEngineArtificialIntelligenceApiUtilBotManager.get(player);
+            String fullPrompt = chatContext + "[Player]: " + message;
 
             // Get response from API (depending on token type)
             JsonObject responseJson;
             if ("server".equalsIgnoreCase(tokenType)) {
-                responseJson = api.getResponse(platform, model, fullPrompt);
+                responseJson = api.getResponse(platform, model, chatContext, message);
             } else if ("player".equalsIgnoreCase(tokenType)) {
                 String token = db.getPlayerToken(player.getUniqueId().toString(), platform);
                 if (token == null || token.isEmpty()) {
                     throw new IllegalStateException("No token found for player.");
                 }
-                responseJson = api.getResponse(platform, model, token, fullPrompt);
+                responseJson = api.getResponse(platform, model, token, chatContext, message);
             } else {
                 throw new IllegalArgumentException("Unknown tokenType: " + tokenType);
             }
