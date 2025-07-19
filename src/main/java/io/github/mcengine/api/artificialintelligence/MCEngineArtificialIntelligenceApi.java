@@ -130,29 +130,4 @@ public class MCEngineArtificialIntelligenceApi {
     public int getTotalTokenUsage(JsonObject responseJson) {
         return MCEngineArtificialIntelligenceApiUtilAi.getTotalTokenUsage(responseJson);
     }
-
-    /**
-     * Sends a prompt to a model and retrieves the full JSON response.
-     *
-     * @param platform The AI platform.
-     * @param model    The model name.
-     * @param message  The prompt message.
-     * @return The full JSON response.
-     */
-    public JsonObject getResponseJson(String platform, String model, String message) {
-        return getResponse(platform, model, message);
-    }
-
-    /**
-     * Sends a prompt to a model using a user token and retrieves the full JSON response.
-     *
-     * @param platform The AI platform.
-     * @param model    The model name.
-     * @param token    The user or API token.
-     * @param message  The prompt message.
-     * @return The full JSON response.
-     */
-    public JsonObject getResponseJson(String platform, String model, String token, String message) {
-        return getResponse(platform, model, token, message);
-    }
 }
