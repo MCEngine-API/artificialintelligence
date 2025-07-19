@@ -10,20 +10,13 @@ import org.bukkit.plugin.Plugin;
  */
 public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngineArtificialIntelligenceApiModel {
 
-    /**
-     * The Bukkit plugin instance used for accessing configuration and logging.
-     */
+    /** The Bukkit plugin instance used for accessing configuration and logging. */
     private final Plugin plugin;
 
-    /**
-     * The default token configured for accessing the DeepSeek API.
-     * Used when a user-specific token is not provided.
-     */
+    /** The default token configured for accessing the DeepSeek API. */
     private final String defaultToken;
 
-    /**
-     * The name of the AI model to be used when sending requests to DeepSeek.
-     */
+    /** The name of the AI model to be used when sending requests to DeepSeek. */
     private final String aiModel;
 
     /**
@@ -38,32 +31,20 @@ public class MCEngineArtificialIntelligenceApiModelDeepSeek implements IMCEngine
         this.aiModel = model;
     }
 
-    /**
-     * Sends a message to the DeepSeek API using the default token from the configuration.
-     *
-     * @param message The user input message or prompt to send.
-     * @return The full JSON response from the DeepSeek API.
-     */
     @Override
-    public JsonObject getResponse(String message) {
-        return getResponse(defaultToken, message);
+    public JsonObject getResponse(String systemPrompt, String message) {
+        return getResponse(defaultToken, systemPrompt, message);
     }
 
-    /**
-     * Sends a message to the DeepSeek API using the provided user-specific token.
-     *
-     * @param token   The user-specific authentication token for DeepSeek.
-     * @param message The user input message or prompt to send.
-     * @return A {@link JsonObject} containing the full response from DeepSeek API.
-     */
     @Override
-    public JsonObject getResponse(String token, String message) {
+    public JsonObject getResponse(String token, String systemPrompt, String message) {
         return MCEngineArtificialIntelligenceApiUtilAi.getResponse(
                 plugin,
                 "https://api.deepseek.com/v1/chat/completions",
                 aiModel,
                 defaultToken,
                 token,
+                systemPrompt,
                 message,
                 false
         );

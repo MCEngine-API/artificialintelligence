@@ -10,38 +10,23 @@ import org.bukkit.plugin.Plugin;
  */
 public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngineArtificialIntelligenceApiModel {
 
-    /**
-     * The Bukkit plugin instance used for accessing configuration and logging.
-     */
+    /** The Bukkit plugin instance used for accessing configuration and logging. */
     private final Plugin plugin;
 
-    /**
-     * The identifier for the custom AI server (used to fetch config values like token and endpoint).
-     */
+    /** The identifier for the custom AI server (used to fetch config values like token and endpoint). */
     private final String serverName;
 
-    /**
-     * The default authentication token defined in the config for this server.
-     * Used if a user-specific token is not provided.
-     */
+    /** The default authentication token defined in the config for this server. */
     private final String defaultToken;
 
-    /**
-     * The full URL of the custom API endpoint for this AI model.
-     */
+    /** The full URL of the custom API endpoint for this AI model. */
     private final String endpoint;
 
-    /**
-     * The name of the AI model to be used in API requests.
-     */
+    /** The name of the AI model to be used in API requests. */
     private final String aiModel;
 
     /**
      * Constructs a new Custom URL AI model handler for a specific server and model.
-     * <p>
-     * This constructor retrieves the API endpoint URL, token, and default model
-     * from the plugin configuration path {@code ai.custom.{server}}.
-     * It allows multiple servers, each with their own endpoint and token, to be used concurrently.
      *
      * @param plugin The Bukkit plugin instance for configuration and logging.
      * @param server The server identifier (corresponding to the config section {@code ai.custom.{server}}).
@@ -56,34 +41,20 @@ public class MCEngineArtificialIntelligenceApiModelCustomUrl implements IMCEngin
         this.aiModel = model;
     }
 
-    /**
-     * Sends a user message to the custom API endpoint using the default token from config
-     * and returns the full JSON response.
-     *
-     * @param message The user input message to send.
-     * @return The full JSON response from the custom AI endpoint.
-     */
     @Override
-    public JsonObject getResponse(String message) {
-        return getResponse(defaultToken, message);
+    public JsonObject getResponse(String systemPrompt, String message) {
+        return getResponse(defaultToken, systemPrompt, message);
     }
 
-    /**
-     * Sends a user message to the custom API endpoint using the provided user-specific token
-     * and returns the full JSON response.
-     *
-     * @param token   The user-specific token used for authentication in the API request.
-     * @param message The user input message to send.
-     * @return The full JSON response from the custom AI endpoint.
-     */
     @Override
-    public JsonObject getResponse(String token, String message) {
+    public JsonObject getResponse(String token, String systemPrompt, String message) {
         return MCEngineArtificialIntelligenceApiUtilAi.getResponse(
                 plugin,
                 endpoint,
                 aiModel,
                 defaultToken,
                 token,
+                systemPrompt,
                 message,
                 false
         );

@@ -10,20 +10,13 @@ import org.bukkit.plugin.Plugin;
  */
 public class MCEngineArtificialIntelligenceApiModelOpenRouter implements IMCEngineArtificialIntelligenceApiModel {
 
-    /**
-     * The Bukkit plugin instance used to access configuration and log errors/warnings.
-     */
+    /** The Bukkit plugin instance used to access configuration and log errors/warnings. */
     private final Plugin plugin;
 
-    /**
-     * The default authentication token used when a user-specific token is not supplied.
-     * Retrieved from the config path {@code ai.openrouter.token}.
-     */
+    /** The default authentication token used when a user-specific token is not supplied. */
     private final String defaultToken;
 
-    /**
-     * The AI model name (e.g., "openrouter/gpt-4") to use for API calls.
-     */
+    /** The AI model name (e.g., "openrouter/gpt-4") to use for API calls. */
     private final String aiModel;
 
     /**
@@ -38,32 +31,20 @@ public class MCEngineArtificialIntelligenceApiModelOpenRouter implements IMCEngi
         this.aiModel = model;
     }
 
-    /**
-     * Sends a user message to the OpenRouter API using the default token from configuration.
-     *
-     * @param message The user input message to send.
-     * @return The full JSON response from OpenRouter.
-     */
     @Override
-    public JsonObject getResponse(String message) {
-        return getResponse(defaultToken, message);
+    public JsonObject getResponse(String systemPrompt, String message) {
+        return getResponse(defaultToken, systemPrompt, message);
     }
 
-    /**
-     * Sends a user message to the OpenRouter API using a provided user-specific token.
-     *
-     * @param token   A user-specific authentication token to use for the API call.
-     * @param message The user input message to send to the AI.
-     * @return A {@link JsonObject} containing the full response from the OpenRouter API.
-     */
     @Override
-    public JsonObject getResponse(String token, String message) {
+    public JsonObject getResponse(String token, String systemPrompt, String message) {
         return MCEngineArtificialIntelligenceApiUtilAi.getResponse(
                 plugin,
                 "https://openrouter.ai/api/v1/chat/completions",
                 aiModel,
                 defaultToken,
                 token,
+                systemPrompt,
                 message,
                 true
         );
