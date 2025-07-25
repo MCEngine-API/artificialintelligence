@@ -8,7 +8,7 @@ import org.bukkit.plugin.Plugin;
  * Implement this interface to integrate AI-related features into the plugin
  * via the AddOn extension system.
  */
-public interface IMCEngineArtificialintelligenceAddOn {
+public interface IMCEngineArtificialIntelligenceAddOn {
 
     /**
      * Called when the AI AddOn is loaded by the engine.

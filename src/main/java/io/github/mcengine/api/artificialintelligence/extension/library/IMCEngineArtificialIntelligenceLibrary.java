@@ -7,7 +7,7 @@ import org.bukkit.plugin.Plugin;
  * <p>
  * Typically used to support AI backend logic or infrastructure without player interaction.
  */
-public interface IMCEngineArtificialintelligenceLibrary {
+public interface IMCEngineArtificialIntelligenceLibrary {
 
     /**
      * Called when the AI library is loaded by the engine.

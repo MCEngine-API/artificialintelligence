@@ -7,7 +7,7 @@ import org.bukkit.plugin.Plugin;
  * <p>
  * Implement this interface to integrate AI-related DLC into the plugin system.
  */
-public interface IMCEngineArtificialintelligenceDLC {
+public interface IMCEngineArtificialIntelligenceDLC {
 
     /**
      * Called when the AI DLC is loaded by the engine.
