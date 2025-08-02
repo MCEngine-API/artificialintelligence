@@ -2,6 +2,7 @@ package io.github.mcengine.api.artificialintelligence;
 
 import com.google.gson.JsonObject;
 import io.github.mcengine.api.artificialintelligence.database.IMCEngineArtificialIntelligenceDB;
+import io.github.mcengine.api.artificialintelligence.function.calling.FunctionCallingLoader;
 import io.github.mcengine.api.artificialintelligence.model.IMCEngineArtificialIntelligenceApiModel;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilAi;
 import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialIntelligenceApiUtilBotManager;
@@ -9,13 +10,57 @@ import io.github.mcengine.api.artificialintelligence.util.MCEngineArtificialInte
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 /**
  * Main API class for MCEngineArtificialIntelligence.
  * Handles AI model initialization, response handling, token usage, and task management.
  */
 public class MCEngineArtificialIntelligenceApi {
+
+    /**
+     * The FunctionCallingLoader instance for chatbot rule-based matching.
+     */
+    private FunctionCallingLoader functionCallingLoader;
+
+    /**
+     * The logger used for diagnostic output.
+     */
+    private Logger logger;
+
+    /**
+     * Initializes the FunctionCallingLoader for rule matching.
+     *
+     * @param plugin The plugin instance.
+     * @param folderPath Path to rule directory relative to plugin's data folder.
+     * @param logger The logger used for messages.
+     */
+    public void initializeFunctionCallingLoader(Plugin plugin, String folderPath, Logger logger) {
+        this.logger = logger;
+        this.functionCallingLoader = new FunctionCallingLoader(plugin, folderPath, logger);
+    }
+
+    /**
+     * Matches the given message string against pre-loaded function calling rules.
+     * Returns the first resolved response string with placeholders replaced, or null if no match found.
+     *
+     * @param player The player who sent the message.
+     * @param msg    The raw input message.
+     * @return A resolved response string or {@code null} if no match found.
+     */
+    public String getMessageMatch(Player player, String msg) {
+        if (functionCallingLoader == null) {
+            if (logger != null) {
+                logger.warning("FunctionCallingLoader not initialized. Call initializeFunctionCallingLoader() first.");
+            }
+            return null;
+        }
+
+        List<String> matches = functionCallingLoader.match(player, msg);
+        return matches.isEmpty() ? null : matches.get(0);
+    }
 
     /**
      * Registers a model under the specified platform if not already registered.
