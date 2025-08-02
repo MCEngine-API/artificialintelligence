@@ -117,7 +117,7 @@ public class FunctionCallingLoader {
     public FunctionCallingLoader(Plugin plugin, String folderPath, Logger logger) {
         this.plugin = plugin;
         IFunctionCallingLoader loader = new FunctionCallingJson(
-                new java.io.File(plugin.getDataFolder(), folderPath + "/data/")
+                new java.io.File(plugin.getDataFolder(), folderPath)
         );
         mergedRules.addAll(loader.loadFunctionRules());
         loadPlaceholder();
