@@ -116,28 +116,113 @@ public class FunctionCallingJson implements IFunctionCallingLoader {
     }
 
     /**
-     * Writes a default `data.json` file with two example FunctionRule entries.
-     * @param file the file to write to
+     * Writes a default `data.json` file containing extensive example chatbot rules.
+     * This method is useful for standalone execution outside the plugin lifecycle.
+     *
+     * @param file the destination file for writing the default data
      */
     private void writeDefaultDataJson(File file) {
         try (FileWriter writer = new FileWriter(file)) {
-            List<FunctionRule> defaultRules = Arrays.asList(
-                    new FunctionRule(
-                            Arrays.asList("What game am I playing right now?", "Which game am I currently playing?"),
-                            "You are playing Minecraft right now."
+            List<Map<String, Object>> data = new ArrayList<>();
+
+            // Generic nearby entities (count/detail)
+            data.add(Map.of(
+                "match", Arrays.asList("What mobs are near me?", "List nearby entities"),
+                "response", "Nearby entities:\n{nearby_entities_count}"
+            ));
+            data.add(Map.of(
+                "match", Arrays.asList("Show nearby entities detail", "List nearby entity details"),
+                "response", "Nearby entities:\n{nearby_entities_detail}"
+            ));
+
+            // Entity-specific rules
+            String[] entityTypes = {
+                "allay", "armadillo", "axolotl", "bat", "bee", "blaze", "bogged", "breeze",
+                "camel", "cat", "cave_spider", "chicken", "cod", "cow", "creeper", "dolphin",
+                "donkey", "drowned", "elder_guardian", "ender_dragon", "endermite", "evoker",
+                "fox", "frog", "ghast", "glow_squid", "goat", "guardian", "hoglin", "horse",
+                "husk", "illusioner", "iron_golem", "llama", "magma_cube", "mooshroom", "mule",
+                "ocelot", "panda", "parrot", "phantom", "pig", "piglin", "piglin_brute",
+                "pillager", "polar_bear", "pufferfish", "rabbit", "ravager", "salmon", "sheep",
+                "shulker", "silverfish", "skeleton", "skeleton_horse", "slime", "sniffer",
+                "snow_golem", "spider", "squid", "stray", "strider", "trader_llama",
+                "tropical_fish", "turtle", "vex", "vindicator", "warden", "witch", "wither",
+                "wither_skeleton", "wolf", "zoglin", "zombie", "zombie_horse", "zombie_villager",
+                "zombified_piglin"
+            };
+
+            for (String type : entityTypes) {
+                String name = type.replace('_', ' ');
+                boolean endsWithS = name.endsWith("s");
+                data.add(Map.of(
+                    "match", Arrays.asList(
+                        "How many " + name + "s nearby?",
+                        "Nearby " + name + " count"
                     ),
-                    new FunctionRule(
-                            Arrays.asList("What plugin is this?", "Which plugin is running?"),
-                            "This plugin is MCEngine Artificial Intelligence."
-                    )
-            );
+                    "response", "There are {nearby_" + type + "_count} " + name + (endsWithS ? "" : "s") + " near you."
+                ));
+                data.add(Map.of(
+                    "match", Arrays.asList(
+                        "Show nearby " + name + " detail",
+                        "Nearby " + name + " details"
+                    ),
+                    "response", "Nearby " + name + (endsWithS ? "" : "s") + ":\n{nearby_" + type + "_detail}"
+                ));
+            }
+
+            // Item, player, world, and time-related entries
+            data.add(Map.of("match", Arrays.asList("What is in my hand?", "Show my held item"), "response", "You are holding: {item_in_hand}"));
+            data.add(Map.of("match", Arrays.asList("What is my display name?", "Show display name"), "response", "Your display name is {player_displayname}."));
+            data.add(Map.of("match", Arrays.asList("How much XP do I have?", "What is my level?"), "response", "Your experience level is {player_exp_level}."));
+            data.add(Map.of("match", Arrays.asList("How hungry am I?", "What is my food level?"), "response", "Your food level is {player_food_level}."));
+            data.add(Map.of("match", Arrays.asList("What mode am I in?", "Tell me my game mode"), "response", "You are in {player_gamemode} mode."));
+            data.add(Map.of("match", Arrays.asList("How much health do I have?", "Tell me my health"), "response", "You have {player_health} health."));
+            data.add(Map.of("match", Arrays.asList("What is in my inventory?", "List my items"), "response", "Inventory contents:\n{player_inventory}"));
+            data.add(Map.of("match", Arrays.asList("What is my IP address?", "Tell me my IP"), "response", "Your IP address is {player_ip}."));
+            data.add(Map.of("match", Arrays.asList("Where am I?", "Tell me my location"), "response", "You are at {player_location} in world {player_world}."));
+            data.add(Map.of("match", Arrays.asList("What is my max health?", "Max HP"), "response", "Your max health is {player_max_health}."));
+            data.add(Map.of("match", Arrays.asList("What is my name?", "Who am I?"), "response", "Your name is {player_name}."));
+            data.add(Map.of("match", Arrays.asList("What is my UUID?", "Tell me my player ID"), "response", "Your UUID is {player_uuid}."));
+            data.add(Map.of("match", Arrays.asList("What is my short UUID?", "Shorten my UUID"), "response", "Short UUID: {player_uuid_short}"));
+            data.add(Map.of("match", Arrays.asList("What world am I in?", "Tell me my world"), "response", "You are in world: {player_world}."));
+            data.add(Map.of("match", Arrays.asList("How hard is this world?", "Tell me world difficulty"), "response", "World difficulty: {world_difficulty}"));
+            data.add(Map.of("match", Arrays.asList("How many entities are in the world?"), "response", "Entities in world: {world_entity_count}"));
+            data.add(Map.of("match", Arrays.asList("How many chunks are loaded?"), "response", "Loaded chunks: {world_loaded_chunks}"));
+            data.add(Map.of("match", Arrays.asList("What is the seed?", "World seed?"), "response", "World seed: {world_seed}"));
+            data.add(Map.of("match", Arrays.asList("What time is it in-game?", "Tell me Minecraft time"), "response", "World time: {world_time}"));
+            data.add(Map.of("match", Arrays.asList("What is the weather like?", "Current weather?"), "response", "World weather: {world_weather}"));
+
+            data.add(Map.of("match", Arrays.asList("What is the server time?", "Current server time"), "response", "Server time is {time_server}."));
+            data.add(Map.of("match", Arrays.asList("What is the UTC time?", "Tell me UTC time"), "response", "UTC time is {time_utc}."));
+            data.add(Map.of("match", Arrays.asList("What is GMT time?", "Time in GMT?"), "response", "GMT time is {time_gmt}."));
+            data.add(Map.of("match", Arrays.asList("Bangkok time?", "What time is it in Bangkok?"), "response", "Bangkok time is {time_bangkok}."));
+            data.add(Map.of("match", Arrays.asList("Berlin time?", "What time is it in Berlin?"), "response", "Berlin time is {time_berlin}."));
+            data.add(Map.of("match", Arrays.asList("London time?", "What time is it in London?"), "response", "London time is {time_london}."));
+            data.add(Map.of("match", Arrays.asList("LA time?", "What time is it in Los Angeles?"), "response", "Los Angeles time is {time_los_angeles}."));
+            data.add(Map.of("match", Arrays.asList("New York time?", "What time is it in New York?"), "response", "New York time is {time_new_york}."));
+            data.add(Map.of("match", Arrays.asList("Paris time?", "What time is it in Paris?"), "response", "Paris time is {time_paris}."));
+            data.add(Map.of("match", Arrays.asList("Singapore time?", "What time is it in Singapore?"), "response", "Singapore time is {time_singapore}."));
+            data.add(Map.of("match", Arrays.asList("Sydney time?", "What time is it in Sydney?"), "response", "Sydney time is {time_sydney}."));
+            data.add(Map.of("match", Arrays.asList("Tokyo time?", "What time is it in Tokyo?"), "response", "Tokyo time is {time_tokyo}."));
+            data.add(Map.of("match", Arrays.asList("Toronto time?", "What time is it in Toronto?"), "response", "Toronto time is {time_toronto}."));
+            data.add(Map.of("match", Arrays.asList("What is time in GMT+7?", "Time in UTC+7?"), "response", "Time in GMT+7 is {time_gmt_plus_07_00}."));
+
+            // Placeholders list
+            data.add(Map.of(
+                "match", Arrays.asList("Tell me all placeholders", "Show me the AI variables"),
+                "response", "Placeholders: {player_name}, {player_uuid}, {player_displayname}, {player_ip}, {player_gamemode}, "
+                    + "{player_health}, {player_max_health}, {player_food_level}, {player_exp_level}, {player_location}, "
+                    + "{player_world}, {item_in_hand}, {player_inventory}, {time_server}, {time_utc}, {time_gmt}, "
+                    + "{time_bangkok}, {time_berlin}, {time_london}, {time_los_angeles}, {time_new_york}, {time_paris}, "
+                    + "{time_singapore}, {time_sydney}, {time_tokyo}, {time_toronto}, {time_gmt_plus_07_00}"
+            ));
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
-            gson.toJson(defaultRules, writer);
-            System.out.println("✅ Created default function rules at: " + file.getPath());
+            gson.toJson(data, writer);
+            System.out.println("✅ Created default data.json at: " + file.getPath());
 
         } catch (IOException e) {
-            System.err.println("⚠️ Could not write default data.json to: " + file.getPath());
+            System.err.println("⚠️ Failed to write default data.json to: " + file.getPath());
             e.printStackTrace();
         }
     }
