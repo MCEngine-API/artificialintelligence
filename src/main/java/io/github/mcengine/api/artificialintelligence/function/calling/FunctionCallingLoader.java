@@ -20,7 +20,9 @@ import static io.github.mcengine.api.artificialintelligence.function.calling.uti
  * <ul>
  *   <li>Placeholder replacement (player/world/time variables).</li>
  *   <li>Fuzzy matching via "words-in-order" regex (e.g., {@code .*w1.*w2.*}).</li>
- *   <li><b>Decision tree index</b> to avoid O(N) scans across all rules.</li>
+ *   <li>Word-anchored decision tree index to avoid O(N) scans across all rules.</li>
+ *   <li>Anchoring by <b>rarest rule token</b> (document frequency) for smaller buckets.</li>
+ *   <li>Query-time <b>intersection</b> of the rarest input-token buckets (with fallback to union).</li>
  * </ul>
  */
 public class FunctionCallingLoader {
@@ -31,9 +33,8 @@ public class FunctionCallingLoader {
     /**
      * Word-anchored decision tree of compiled match patterns.
      * <p>
-     * The tree maps the <i>first token</i> of a rule's match string to a bucket of compiled patterns.
-     * At query-time we tokenize the user input and only evaluate buckets whose anchor token
-     * appears in the input (plus a small {@code *} fallback bucket).
+     * The tree maps an <em>anchor token</em> (chosen as the rarest token in a rule) to a bucket of compiled patterns.
+     * At query-time we examine buckets for the rarest input tokens and try to intersect them to minimize candidates.
      */
     private final DecisionTree merged_rules = new DecisionTree();
 
@@ -52,18 +53,18 @@ public class FunctionCallingLoader {
         placeholders.put("{nearby_entities_count}", player -> getNearbyEntities(plugin, player, 20));
         placeholders.put("{nearby_entities_detail}", player -> getNearbyEntities(plugin, player, 20));
         String[] entityTypes = {
-            "allay", "armadillo", "axolotl", "bat", "bee", "blaze", "bogged", "breeze",
-            "camel", "cat", "cave_spider", "chicken", "cod", "cow", "creeper", "dolphin",
-            "donkey", "drowned", "elder_guardian", "ender_dragon", "endermite", "evoker",
-            "fox", "frog", "ghast", "glow_squid", "goat", "guardian", "hoglin", "horse",
-            "husk", "illusioner", "iron_golem", "llama", "magma_cube", "mooshroom", "mule",
-            "ocelot", "panda", "parrot", "phantom", "pig", "piglin", "piglin_brute",
-            "pillager", "polar_bear", "pufferfish", "rabbit", "ravager", "salmon", "sheep",
-            "shulker", "silverfish", "skeleton", "skeleton_horse", "slime", "sniffer",
-            "snow_golem", "spider", "squid", "stray", "strider", "trader_llama",
-            "tropical_fish", "turtle", "vex", "vindicator", "warden", "witch", "wither",
-            "wither_skeleton", "wolf", "zoglin", "zombie", "zombie_horse", "zombie_villager",
-            "zombified_piglin"
+                "allay", "armadillo", "axolotl", "bat", "bee", "blaze", "bogged", "breeze",
+                "camel", "cat", "cave_spider", "chicken", "cod", "cow", "creeper", "dolphin",
+                "donkey", "drowned", "elder_guardian", "ender_dragon", "endermite", "evoker",
+                "fox", "frog", "ghast", "glow_squid", "goat", "guardian", "hoglin", "horse",
+                "husk", "illusioner", "iron_golem", "llama", "magma_cube", "mooshroom", "mule",
+                "ocelot", "panda", "parrot", "phantom", "pig", "piglin", "piglin_brute",
+                "pillager", "polar_bear", "pufferfish", "rabbit", "ravager", "salmon", "sheep",
+                "shulker", "silverfish", "skeleton", "skeleton_horse", "slime", "sniffer",
+                "snow_golem", "spider", "squid", "stray", "strider", "trader_llama",
+                "tropical_fish", "turtle", "vex", "vindicator", "warden", "witch", "wither",
+                "wither_skeleton", "wolf", "zoglin", "zombie", "zombie_horse", "zombie_villager",
+                "zombified_piglin"
         };
         for (String type : entityTypes) {
             placeholders.put("{nearby_" + type + "_count}", player -> getNearbyEntities(plugin, player, type, 20));
@@ -120,7 +121,13 @@ public class FunctionCallingLoader {
 
     /**
      * Constructs the loader and builds the decision tree index from all rules in the configured directory.
-     * Logs the number of rules loaded and initializes the placeholder map.
+     * <p>
+     * Indexing strategy:
+     * <ol>
+     *     <li>Compute document frequency (DF) for every token across all rule match strings.</li>
+     *     <li>For each match string, anchor it to its <b>rarest token</b> (minimum DF).</li>
+     *     <li>Precompile a fuzzy regex once and insert into the indexed bucket.</li>
+     * </ol>
      *
      * @param plugin     The plugin instance used for locating the data folder.
      * @param folderPath The folder path relative to the plugin data directory.
@@ -133,16 +140,28 @@ public class FunctionCallingLoader {
                 new java.io.File(plugin.getDataFolder(), folderPath)
         );
 
-        // Build the indexed decision tree
+        List<FunctionRule> rules = loader.loadFunctionRules();
+
+        // 1) Document frequency across all rule match strings
+        Map<String, Integer> df = new HashMap<>();
+        for (FunctionRule rule : rules) {
+            for (String raw : rule.getMatch()) {
+                for (String tok : tokenizeForDF(raw)) {
+                    df.merge(tok, 1, Integer::sum);
+                }
+            }
+        }
+
+        // 2) Build indexed tree with rarest-token anchoring
         int ruleCount = 0;
-        for (FunctionRule rule : loader.loadFunctionRules()) {
+        for (FunctionRule rule : rules) {
             ruleCount++;
             for (String raw : rule.getMatch()) {
                 final String pattern = convertToRegex(raw);
                 final Pattern compiled = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
 
-                final String firstToken = firstToken(raw);
-                merged_rules.insert(firstToken, new PatternEntry(compiled, rule.getResponse()));
+                final String anchor = rarestToken(raw, df);
+                merged_rules.insert(anchor, new PatternEntry(compiled, rule.getResponse()));
             }
         }
 
@@ -161,7 +180,13 @@ public class FunctionCallingLoader {
 
     /**
      * Matches player input against indexed rule buckets, then validates candidates with compiled regex.
-     * If any rule matches, the response will be dynamically filled with placeholders and returned.
+     * <p>
+     * Query-time optimization:
+     * <ul>
+     *   <li>Tokenize input once.</li>
+     *   <li>Pick up to two <b>smallest</b> buckets among tokens present (proxy for rarest tokens).</li>
+     *   <li>Try <b>intersection</b> of those buckets; if empty, fall back to <b>union</b>.</li>
+     * </ul>
      *
      * @param player The player who sent the input.
      * @param input  The raw user input text.
@@ -172,10 +197,10 @@ public class FunctionCallingLoader {
         final String trimmedInput = input.trim();
         if (trimmedInput.isEmpty()) return results;
 
-        // Tokenize input once (lowercased) to pick buckets.
+        // Tokenize input once (lowercased)
         final Set<String> inputTokens = tokenize(trimmedInput);
 
-        // Evaluate pattern buckets that share at least one anchor with the input.
+        // Candidate selection with intersection of the 1–2 rarest buckets (by bucket size)
         final List<PatternEntry> candidates = merged_rules.candidatesFor(inputTokens);
 
         for (PatternEntry entry : candidates) {
@@ -189,18 +214,23 @@ public class FunctionCallingLoader {
 
     /**
      * Converts a plain user-friendly match string into a basic regex pattern for fuzzy matching.
+     * Tokens are {@link Pattern#quote(String) quoted} to avoid regex meta-character side effects.
      *
      * @param text The plain text pattern from JSON.
      * @return A regex pattern string.
      */
     private String convertToRegex(String text) {
-        String[] words = text.trim().toLowerCase().split("\\s+");
-        return ".*" + String.join(".*", words) + ".*";
+        String[] words = text == null ? new String[0] : text.trim().toLowerCase().split("\\s+");
+        return ".*" + String.join(".*",
+                Arrays.stream(words).map(Pattern::quote).toArray(String[]::new)
+        ) + ".*";
     }
 
     /**
      * Replaces placeholders in a chatbot response with real-time values from the player or server.
      * Uses cached placeholder function map for optimal performance.
+     * <p>
+     * Time-zone label replacement is only attempted if a quick substring check indicates it is needed.
      *
      * @param response The raw response containing placeholders.
      * @param player   The player whose data is used for substitution.
@@ -213,14 +243,17 @@ public class FunctionCallingLoader {
             result = result.replace(entry.getKey(), entry.getValue().apply(player));
         }
 
-        for (int hour = -12; hour <= 14; hour++) {
-            for (int min : new int[]{0, 30, 45}) {
-                String utcLabel = getZoneLabel("utc", hour, min);
-                String gmtLabel = getZoneLabel("gmt", hour, min);
-                TimeZone tz = TimeZone.getTimeZone(String.format("GMT%+03d:%02d", hour, min));
-                String time = getFormattedTime(tz);
-                result = result.replace(utcLabel, time);
-                result = result.replace(gmtLabel, time);
+        // Guard the expensive zone sweep with a cheap contains check.
+        if (result.contains("{time_") || result.toLowerCase().contains("utc") || result.toLowerCase().contains("gmt")) {
+            for (int hour = -12; hour <= 14; hour++) {
+                for (int min : new int[]{0, 30, 45}) {
+                    String utcLabel = getZoneLabel("utc", hour, min);
+                    String gmtLabel = getZoneLabel("gmt", hour, min);
+                    TimeZone tz = TimeZone.getTimeZone(String.format("GMT%+03d:%02d", hour, min));
+                    String time = getFormattedTime(tz);
+                    result = result.replace(utcLabel, time);
+                    result = result.replace(gmtLabel, time);
+                }
             }
         }
 
@@ -228,15 +261,24 @@ public class FunctionCallingLoader {
     }
 
     // ------------------------------
-    // Helpers: tokenization & anchor
+    // Helpers: tokenization & anchors
     // ------------------------------
 
     /**
-     * Returns the first lowercase token in a match string; {@code "*"} if none.
+     * Returns the rarest lowercase token in a match string according to a DF map; {@code "*"} if none.
      */
-    private static String firstToken(String raw) {
+    private static String rarestToken(String raw, Map<String, Integer> df) {
         String[] parts = raw == null ? new String[0] : raw.trim().toLowerCase().split("\\s+");
-        return parts.length > 0 ? parts[0] : DecisionTree.FALLBACK_KEY;
+        String best = DecisionTree.FALLBACK_KEY;
+        int bestDf = Integer.MAX_VALUE;
+        for (String p : parts) {
+            int d = df.getOrDefault(p, Integer.MAX_VALUE - 1);
+            if (d < bestDf) {
+                bestDf = d;
+                best = p;
+            }
+        }
+        return best;
     }
 
     /**
@@ -244,6 +286,15 @@ public class FunctionCallingLoader {
      */
     private static Set<String> tokenize(String input) {
         String[] parts = input.toLowerCase().split("\\s+");
+        return new LinkedHashSet<>(Arrays.asList(parts));
+    }
+
+    /**
+     * Tokenization for DF calculation (uses a Set per match string to count presence, not multiplicity).
+     */
+    private static Set<String> tokenizeForDF(String raw) {
+        if (raw == null) return Collections.emptySet();
+        String[] parts = raw.trim().toLowerCase().split("\\s+");
         return new LinkedHashSet<>(Arrays.asList(parts));
     }
 
@@ -269,11 +320,11 @@ public class FunctionCallingLoader {
     /**
      * A lightweight word-anchored decision tree.
      * <p>
-     * The root maintains buckets keyed by the first token of each rule's match string.
+     * The root maintains buckets keyed by a chosen anchor token per rule.
      * A special {@link #FALLBACK_KEY} bucket captures empty/degenerate cases.
      */
     private static final class DecisionTree {
-        /** Key used for rules without a usable first token. */
+        /** Key used for rules without a usable anchor. */
         private static final String FALLBACK_KEY = "*";
 
         /** Root buckets: anchor token → list of candidate patterns. */
@@ -282,7 +333,7 @@ public class FunctionCallingLoader {
         /**
          * Inserts a compiled pattern under the given anchor token.
          *
-         * @param anchor first token (lowercased) or {@link #FALLBACK_KEY}
+         * @param anchor chosen token (lowercased) or {@link #FALLBACK_KEY}
          * @param entry  compiled pattern + response
          */
         private void insert(String anchor, PatternEntry entry) {
@@ -291,20 +342,48 @@ public class FunctionCallingLoader {
         }
 
         /**
-         * Returns all candidate patterns whose anchor tokens appear in the provided input tokens,
-         * plus a small fallback bucket.
+         * Returns all candidate patterns for the given input tokens by:
+         * <ol>
+         *   <li>Selecting up to two smallest buckets among tokens present in the tree.</li>
+         *   <li>Returning the <b>intersection</b> of those buckets (order preserved) if non-empty.</li>
+         *   <li>Otherwise, returning the <b>union</b> of all present-token buckets (order preserved).</li>
+         *   <li>Appending the fallback bucket at the end.</li>
+         * </ol>
          *
          * @param inputTokens lowercased tokens from the user's input
          * @return ordered list of candidate patterns to test
          */
         private List<PatternEntry> candidatesFor(Set<String> inputTokens) {
-            // Preserve insertion order deterministically using LinkedHashSet.
+            // Collect present-token buckets and sort by size (ascending).
+            List<Map.Entry<String, List<PatternEntry>>> present = new ArrayList<>();
+            for (String t : inputTokens) {
+                List<PatternEntry> b = root.get(t);
+                if (b != null && !b.isEmpty()) {
+                    present.add(Map.entry(t, b));
+                }
+            }
+            present.sort(Comparator.comparingInt(e -> e.getValue().size()));
+
             LinkedHashSet<PatternEntry> out = new LinkedHashSet<>();
 
-            for (String token : inputTokens) {
-                List<PatternEntry> bucket = root.get(token);
-                if (bucket != null) out.addAll(bucket);
+            // Try intersection of up to two smallest buckets
+            if (present.size() >= 2) {
+                List<PatternEntry> a = present.get(0).getValue();
+                List<PatternEntry> b = present.get(1).getValue();
+                LinkedHashSet<PatternEntry> inter = new LinkedHashSet<>(a);
+                inter.retainAll(b);
+                if (!inter.isEmpty()) {
+                    out.addAll(inter);
+                }
             }
+
+            // If intersection was empty or we had <2 buckets, fall back to union of all present buckets
+            if (out.isEmpty()) {
+                for (Map.Entry<String, List<PatternEntry>> e : present) {
+                    out.addAll(e.getValue());
+                }
+            }
+
             // Always check the fallback bucket last.
             List<PatternEntry> star = root.get(FALLBACK_KEY);
             if (star != null) out.addAll(star);
