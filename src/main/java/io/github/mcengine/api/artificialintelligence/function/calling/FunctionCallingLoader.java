@@ -14,16 +14,28 @@ import static io.github.mcengine.api.artificialintelligence.function.calling.uti
 import static io.github.mcengine.api.artificialintelligence.function.calling.util.FunctionCallingWorld.*;
 
 /**
- * Loads and handles matching of function calling rules for the MCEngineChatBot plugin.
- * Supports placeholder replacement, dynamic fuzzy matching using regex, and time zone formatting.
+ * Loads and matches function-calling rules for the MCEngineChatBot plugin.
+ * <p>
+ * Key features:
+ * <ul>
+ *   <li>Placeholder replacement (player/world/time variables).</li>
+ *   <li>Fuzzy matching via "words-in-order" regex (e.g., {@code .*w1.*w2.*}).</li>
+ *   <li><b>Decision tree index</b> to avoid O(N) scans across all rules.</li>
+ * </ul>
  */
 public class FunctionCallingLoader {
 
     /** The main plugin instance for file lookups and context. */
     private final Plugin plugin;
 
-    /** List of all rules loaded from `.json` files, used to determine chatbot responses. */
-    private final List<FunctionRule> mergedRules = new ArrayList<>();
+    /**
+     * Word-anchored decision tree of compiled match patterns.
+     * <p>
+     * The tree maps the <i>first token</i> of a rule's match string to a bucket of compiled patterns.
+     * At query-time we tokenize the user input and only evaluate buckets whose anchor token
+     * appears in the input (plus a small {@code *} fallback bucket).
+     */
+    private final DecisionTree merged_rules = new DecisionTree();
 
     /**
      * Map of placeholder keys to suppliers, kept in memory for efficient access.
@@ -107,7 +119,7 @@ public class FunctionCallingLoader {
     }
 
     /**
-     * Constructs the loader and loads rules from all `.json` files in the configured directory.
+     * Constructs the loader and builds the decision tree index from all rules in the configured directory.
      * Logs the number of rules loaded and initializes the placeholder map.
      *
      * @param plugin     The plugin instance used for locating the data folder.
@@ -116,12 +128,26 @@ public class FunctionCallingLoader {
      */
     public FunctionCallingLoader(Plugin plugin, String folderPath, Logger logger) {
         this.plugin = plugin;
+
         IFunctionCallingLoader loader = new FunctionCallingJson(
                 new java.io.File(plugin.getDataFolder(), folderPath)
         );
-        mergedRules.addAll(loader.loadFunctionRules());
+
+        // Build the indexed decision tree
+        int ruleCount = 0;
+        for (FunctionRule rule : loader.loadFunctionRules()) {
+            ruleCount++;
+            for (String raw : rule.getMatch()) {
+                final String pattern = convertToRegex(raw);
+                final Pattern compiled = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
+
+                final String firstToken = firstToken(raw);
+                merged_rules.insert(firstToken, new PatternEntry(compiled, rule.getResponse()));
+            }
+        }
+
         loadPlaceholder();
-        logger.info("Loaded " + mergedRules.size() + " function rules.");
+        logger.info("Loaded " + ruleCount + " function rules; indexed into " + merged_rules.bucketCount() + " buckets.");
     }
 
     /**
@@ -134,7 +160,7 @@ public class FunctionCallingLoader {
     }
 
     /**
-     * Matches player input against known rules using regex-based fuzzy matching.
+     * Matches player input against indexed rule buckets, then validates candidates with compiled regex.
      * If any rule matches, the response will be dynamically filled with placeholders and returned.
      *
      * @param player The player who sent the input.
@@ -143,17 +169,19 @@ public class FunctionCallingLoader {
      */
     public List<String> match(Player player, String input) {
         List<String> results = new ArrayList<>();
-        String trimmedInput = input.trim();
+        final String trimmedInput = input.trim();
+        if (trimmedInput.isEmpty()) return results;
 
-        for (FunctionRule rule : mergedRules) {
-            for (String raw : rule.getMatch()) {
-                String pattern = convertToRegex(raw);
-                Pattern regex = Pattern.compile(pattern, Pattern.CASE_INSENSITIVE);
-                if (regex.matcher(trimmedInput).find()) {
-                    String resolved = applyPlaceholders(rule.getResponse(), player);
-                    results.add(resolved);
-                    break;
-                }
+        // Tokenize input once (lowercased) to pick buckets.
+        final Set<String> inputTokens = tokenize(trimmedInput);
+
+        // Evaluate pattern buckets that share at least one anchor with the input.
+        final List<PatternEntry> candidates = merged_rules.candidatesFor(inputTokens);
+
+        for (PatternEntry entry : candidates) {
+            if (entry.pattern.matcher(trimmedInput).find()) {
+                final String resolved = applyPlaceholders(entry.response, player);
+                results.add(resolved);
             }
         }
         return results;
@@ -197,5 +225,98 @@ public class FunctionCallingLoader {
         }
 
         return result;
+    }
+
+    // ------------------------------
+    // Helpers: tokenization & anchor
+    // ------------------------------
+
+    /**
+     * Returns the first lowercase token in a match string; {@code "*"} if none.
+     */
+    private static String firstToken(String raw) {
+        String[] parts = raw == null ? new String[0] : raw.trim().toLowerCase().split("\\s+");
+        return parts.length > 0 ? parts[0] : DecisionTree.FALLBACK_KEY;
+    }
+
+    /**
+     * Tokenizes arbitrary input into a set of lowercase words.
+     */
+    private static Set<String> tokenize(String input) {
+        String[] parts = input.toLowerCase().split("\\s+");
+        return new LinkedHashSet<>(Arrays.asList(parts));
+    }
+
+    // ------------------------------
+    // Decision tree implementation
+    // ------------------------------
+
+    /**
+     * Immutable data object for a compiled candidate pattern and its associated response template.
+     */
+    private static final class PatternEntry {
+        /** Pre-compiled fuzzy regex (e.g., {@code .*w1.*w2.*}). */
+        private final Pattern pattern;
+        /** Response template to render if the pattern matches. */
+        private final String response;
+
+        private PatternEntry(Pattern pattern, String response) {
+            this.pattern = pattern;
+            this.response = response;
+        }
+    }
+
+    /**
+     * A lightweight word-anchored decision tree.
+     * <p>
+     * The root maintains buckets keyed by the first token of each rule's match string.
+     * A special {@link #FALLBACK_KEY} bucket captures empty/degenerate cases.
+     */
+    private static final class DecisionTree {
+        /** Key used for rules without a usable first token. */
+        private static final String FALLBACK_KEY = "*";
+
+        /** Root buckets: anchor token → list of candidate patterns. */
+        private final Map<String, List<PatternEntry>> root = new HashMap<>();
+
+        /**
+         * Inserts a compiled pattern under the given anchor token.
+         *
+         * @param anchor first token (lowercased) or {@link #FALLBACK_KEY}
+         * @param entry  compiled pattern + response
+         */
+        private void insert(String anchor, PatternEntry entry) {
+            root.computeIfAbsent(anchor == null || anchor.isEmpty() ? FALLBACK_KEY : anchor,
+                    k -> new ArrayList<>()).add(entry);
+        }
+
+        /**
+         * Returns all candidate patterns whose anchor tokens appear in the provided input tokens,
+         * plus a small fallback bucket.
+         *
+         * @param inputTokens lowercased tokens from the user's input
+         * @return ordered list of candidate patterns to test
+         */
+        private List<PatternEntry> candidatesFor(Set<String> inputTokens) {
+            // Preserve insertion order deterministically using LinkedHashSet.
+            LinkedHashSet<PatternEntry> out = new LinkedHashSet<>();
+
+            for (String token : inputTokens) {
+                List<PatternEntry> bucket = root.get(token);
+                if (bucket != null) out.addAll(bucket);
+            }
+            // Always check the fallback bucket last.
+            List<PatternEntry> star = root.get(FALLBACK_KEY);
+            if (star != null) out.addAll(star);
+
+            return new ArrayList<>(out);
+        }
+
+        /**
+         * @return number of non-empty buckets in the root map.
+         */
+        private int bucketCount() {
+            return root.size();
+        }
     }
 }
